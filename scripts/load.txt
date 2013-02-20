@@ -1,0 +1,5 @@
+.separator ,
+.import scripts/category.csv Category
+.import scripts/product.csv Product
+.import scripts/affiliation.csv Affiliation
+
