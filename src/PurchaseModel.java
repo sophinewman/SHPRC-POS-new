@@ -40,6 +40,14 @@ public class PurchaseModel {
 
 	}
 
+	public Client getCurrentClient() {
+		return currentClient;
+	}
+
+	
+	public HashMap<Product, Integer> getPurchaseProducts() {
+		return products;
+	}
 
 	/**
 	 * Sets the current client based on the specified SUID and affiliation. Takes a 
@@ -68,9 +76,14 @@ public class PurchaseModel {
 	 *  @param qty the quantity of the product to be added to a purchase
 	 */
 	public void addProduct(Product product, int qty) {
-		totals[SUBTOTAL] -= getCurrentProductCost(product);
-		products.put(product, qty);
-		totals[SUBTOTAL] += product.getPrice() * qty;
+		if (products.get(product) != null) {
+			int currentQty = products.get(product);
+			products.put(product, currentQty + qty);
+			totals[SUBTOTAL] += product.getPrice() * qty;
+		} else {
+			products.put(product, qty);
+			totals[SUBTOTAL] += product.getPrice() * qty;
+		}
 	}
 
 
@@ -97,11 +110,8 @@ public class PurchaseModel {
 	 */
 	public int tallyPurchaseTotal() {
 		totals[CREDIT] = calculateCredit();
-		System.out.println("totals[CREDIT] : " + totals[CREDIT]);
 		totals[PT_SUBSIDY] = applyPregnancyTestSubsidy();
-		System.out.println("totals[PT_SUBSIDY] : " + totals[PT_SUBSIDY]);
 		int total = totals[SUBTOTAL] + totals[CREDIT] + totals[PT_SUBSIDY];
-		System.out.println("totals[SUBTOTAL] : " +totals[SUBTOTAL]);
 		totals[TOTAL] = total;
 		return total;
 	}
@@ -115,8 +125,10 @@ public class PurchaseModel {
 	 */
 	private int applyPregnancyTestSubsidy() {
 		Product pregnancyTest = rDB.getPregnancyTestProduct();
-		if (products.containsKey(pregnancyTest) && currentClient.pregnancyTestAvailable()) {
-			return -1 * pregnancyTest.getPrice();
+		if (products.containsKey(pregnancyTest) && currentClient != null) {
+			if (currentClient.pregnancyTestAvailable()) {
+				return -1 * pregnancyTest.getPrice();
+			}
 		}
 		return 0;
 	}

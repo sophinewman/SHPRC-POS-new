@@ -45,19 +45,10 @@ public class RunnableTester {
 			// handle exception
 		}
 
-//		testPurchaseAndClient(rDB);
+		//testPurchaseAndClient(rDB);
 
 		PurchaseModel testPurchase = new PurchaseModel(rDB);
 		PurchaseController controller = new PurchaseController(testPurchase, rDB);
-
-		try {
-			rDB.closeDatabase();
-		}
-		catch (SQLException e) {
-			System.err.println(e.getMessage());
-		}
-
-
 
 
 	}

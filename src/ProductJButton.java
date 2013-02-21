@@ -4,10 +4,8 @@ import java.awt.Font;
 import javax.swing.JButton;
 
 
-public class ProductJButton extends JButton {
-	private Color[] colors = {Color.BLACK, new Color(204, 255, 254),
-			new Color(204, 204, 255), new Color(244, 204, 244), 
-			new Color(189, 205, 222), new Color(204, 255, 204)};
+public class ProductJButton extends JButton implements SHPRCConstants {
+
 
 	private int productID;
 	
@@ -15,7 +13,15 @@ public class ProductJButton extends JButton {
 		super(str);
 		this.productID = productID;
 		this.setFont(new Font("Helvetica", Font.BOLD, 14));
-		this.setBackground(colors[productID/100]);
+		this.setBackground(getColor());
+	}
+	
+	private Color getColor() {
+		if (productID/100 >= COLORS.length) {
+			return LIGHT_GREY;
+			
+		}
+		return COLORS[productID/100];
 	}
 	
 	public int getProductID() {
