@@ -10,5 +10,9 @@ public interface SHPRCConstants {
 
 	public String[] AFFILIATIONS = {"-Select-","Frosh", "Soph", "Junior", 
 			"Senior", "Co-term", "Grad", "Other"}; //TODO make customizable
+	
+	public static final int INVALID_NUMBER_INPUT = -1;
+	public static final int CANCEL_INPUT = 0; //TODO how should I work around this?
+	public static final Color HIGHLIGHT_PURPLE = new Color(102, 102, 255);
 
 }

@@ -67,7 +67,7 @@ public class RuntimeDatabase {
 				return false;
 			}
 		}
-		catch(SQLException e) {
+		catch (SQLException e) {
 			System.err.println(e.getMessage());
 		}
 		return true;

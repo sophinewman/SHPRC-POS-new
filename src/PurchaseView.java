@@ -1,5 +1,4 @@
 
-
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,7 +24,12 @@ public class PurchaseView implements ActionListener, SHPRCConstants {
 	private JButton clearButton;
 	private JButton deleteButton;
 	private JButton submitButton;
+	private JButton adminViewButton;
+	private JButton voidButton;
 	private JPanel purchaseList; 
+	private JPanel productListBox;
+	private JPanel priceListBox;
+	private JPanel totalPanel;
 
 
 
@@ -49,62 +53,30 @@ public class PurchaseView implements ActionListener, SHPRCConstants {
 		buttonPanel.setSize(new Dimension(440, 440));
 		buttonPanel.setLayout(new GridLayout(0, 4, 2, 2));
 		drawProductButtons();
-		frame.getContentPane().add(buttonPanel);
+		frame.add(buttonPanel);
+
+		drawClientComponents();
+
+		drawPurchaseComponents();
+
+		drawLeftButtons();
+		
 		frame.validate();
+	}
 
-		JPanel clientPanel = new JPanel();
-		clientPanel.setLayout(null);
-		clientPanel.setBorder(new LineBorder(LIGHT_GREY));
-		clientPanel.setBounds(480, 20, 320, 123);
-		drawClientComponents(clientPanel);
-		frame.getContentPane().add(clientPanel);
-
-		JPanel purchaseButtonPanel = new JPanel();
-		purchaseButtonPanel.setBounds(480, 150, 320, 31);
-		purchaseButtonPanel.setLayout(null);
-		frame.getContentPane().add(purchaseButtonPanel);
-		drawPurchaseModifierButtons(purchaseButtonPanel);
-
-		JPanel purchasePanel = new JPanel();
-		purchasePanel.setBorder(new LineBorder(LIGHT_GREY));
-		purchasePanel.setBounds(480, 187, 320, 336);
-		frame.getContentPane().add(purchasePanel);
-		purchasePanel.setLayout(null);
-
-		purchaseList = new JPanel();
-		purchaseList.setBounds(5, 35, 310, 295);
-		purchaseList.setVisible(true);
-		purchaseList.setLayout(new BoxLayout(purchaseList, BoxLayout.Y_AXIS));
-		//purchaseList.setLayout(null);
-		purchasePanel.add(purchaseList);
-
-		JLabel purchaseLabel = new JLabel("PURCHASE");
-		purchaseLabel.setBounds(0, 10, 320, 19);
-		purchaseLabel.setFont(new Font("Helvetica", Font.BOLD, 16));
-		purchaseLabel.setHorizontalAlignment(SwingConstants.CENTER);
-		purchasePanel.add(purchaseLabel);
-
-		submitButton = new JButton("SUBMIT");
-		submitButton.setFont(new Font("Helvetica", Font.BOLD, 13));
-		submitButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				System.out.println("Submit hit!");
-			}
-		});
-		submitButton.setBounds(480, 528, 320, 31);
-		frame.getContentPane().add(submitButton);
-
-		JButton adminViewButton = new JButton("Administrator View");
+	private void drawLeftButtons() {
+		adminViewButton = new JButton("Administrator View");
 		adminViewButton.setFont(new Font("Helvetica", Font.BOLD, 13));
 		adminViewButton.setBounds(20, 528, 175, 31);
 		frame.getContentPane().add(adminViewButton);
 
-		JButton voidButton = new JButton("Void");
+		voidButton = new JButton("Void");
 		voidButton.setFont(new Font("Helvetica", Font.BOLD, 13));
 		voidButton.setBounds(205, 528, 130, 31);
 		frame.getContentPane().add(voidButton);
 	}
-
+	
+	
 	private void drawProductButtons() {
 		NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.US);
 		for (Product p : productList) {
@@ -114,43 +86,88 @@ public class PurchaseView implements ActionListener, SHPRCConstants {
 			buttonPanel.add(pjb);
 		}
 	}
+	
+	private void drawPurchaseComponents() {
+		JPanel purchaseButtonPanel = new JPanel();
+		purchaseButtonPanel.setBounds(480, 150, 320, 31);
+		purchaseButtonPanel.setLayout(null);
+		frame.add(purchaseButtonPanel);
+		drawPurchaseModifierButtons(purchaseButtonPanel);
 
-	private void drawClientComponents(JPanel panel) {
-		JLabel clientInfoLabel = new JLabel("CLIENT INFO");
-		clientInfoLabel.setFont(new Font("Helvetica", Font.BOLD, 16));
+		purchaseList = new JPanel();
+		purchaseList.setBounds(480, 187, 320, 336);
+		frame.add(purchaseList);
+		purchaseList.setBorder(BorderFactory.createLineBorder(LIGHT_GREY));
+		purchaseList.setLayout(new BorderLayout());
+		purchaseList.setVisible(true);
+
+		productListBox = new JPanel();
+		productListBox.setLayout(new BoxLayout(productListBox, BoxLayout.Y_AXIS));
+		purchaseList.add(productListBox, BorderLayout.WEST);
+
+
+		priceListBox = new JPanel();
+		priceListBox.setLayout(new BoxLayout(priceListBox, BoxLayout.Y_AXIS));
+		purchaseList.add(priceListBox, BorderLayout.EAST);
+
+		totalPanel = new JPanel();
+		totalPanel.setLayout(new BorderLayout());
+		purchaseList.add(totalPanel, BorderLayout.SOUTH);
+
+		HelveticaJLabel purchaseLabel = new HelveticaJLabel("PURCHASE", 18);
+		purchaseLabel.setBorder(BorderFactory.createEmptyBorder(6, 1, 3, 1));
+		purchaseLabel.setBounds(0, 10, 320, 19);
+		purchaseLabel.setHorizontalAlignment(SwingConstants.CENTER);
+		purchaseList.add(purchaseLabel, BorderLayout.NORTH);
+
+		submitButton = new JButton("SUBMIT");
+		submitButton.setFont(new Font("Helvetica", Font.BOLD, 13));
+		submitButton.addActionListener(this);
+		
+		submitButton.setBounds(480, 528, 320, 31);
+		frame.add(submitButton);
+	}
+
+	private void drawClientComponents() {
+		JPanel clientPanel = new JPanel();
+		clientPanel.setLayout(null);
+		clientPanel.setBorder(new LineBorder(LIGHT_GREY));
+		clientPanel.setBounds(480, 20, 320, 123);
+		
+		HelveticaJLabel clientInfoLabel = new HelveticaJLabel("CLIENT INFO", 16);
+
 		clientInfoLabel.setBounds(89, 10, 141, 16);
 		clientInfoLabel.setHorizontalAlignment(SwingConstants.CENTER);
-		panel.add(clientInfoLabel);
+		clientPanel.add(clientInfoLabel);
 
-		JLabel suidLabel = new JLabel("SUID");
-		suidLabel.setFont(new Font("Helvetica", Font.BOLD, 12));
+		HelveticaJLabel suidLabel = new HelveticaJLabel("SUID", 14);
 		suidLabel.setHorizontalAlignment(SwingConstants.RIGHT);
 		suidLabel.setBounds(19, 46, 61, 16);
-		panel.add(suidLabel);
+		clientPanel.add(suidLabel);
 
-		JLabel affiliationLabel = new JLabel("Affiliation");
-		affiliationLabel.setFont(new Font("Helvetica", Font.BOLD, 12));
+		HelveticaJLabel affiliationLabel = new HelveticaJLabel("Affiliation", 14);
 		affiliationLabel.setHorizontalAlignment(SwingConstants.RIGHT);
 		affiliationLabel.setBounds(0, 82, 80, 16);
-		panel.add(affiliationLabel);
+		clientPanel.add(affiliationLabel);
 
 		textField = new JTextField(10);
 		textField.setBounds(90, 40, 120, 27);
 		textField.setFont(new Font("Helvetica", Font.PLAIN, 12));
-		panel.add(textField);
+		clientPanel.add(textField);
 
 		affiliationComboBox = new JComboBox(AFFILIATIONS);
 		affiliationComboBox.setBounds(90, 78, 120, 27);
 		affiliationComboBox.setFont(new Font("Helvetica", Font.PLAIN, 12));
-		panel.add(affiliationComboBox);
+		clientPanel.add(affiliationComboBox);
 
 		enterButton = new JButton("ENTER");
 		enterButton.setFont(new Font("Helvetica", Font.BOLD, 12));
 		enterButton.setBounds(219, 56, 80, 29);
 		enterButton.addActionListener(this);
-		panel.add(enterButton);
+		clientPanel.add(enterButton);
+		
+		frame.add(clientPanel);
 	}
-
 
 	private void drawPurchaseModifierButtons (JPanel panel) {
 		quantityButton = new JButton("QUANTITY");
@@ -161,6 +178,7 @@ public class PurchaseView implements ActionListener, SHPRCConstants {
 		deleteButton = new JButton("DELETE");
 		deleteButton.setFont(new Font("Helvetica", Font.BOLD, 12));
 		deleteButton.setBounds(109, 0, 103, 31);
+		deleteButton.addActionListener(this);
 		panel.add(deleteButton);
 
 		clearButton = new JButton("CLEAR");
@@ -183,11 +201,15 @@ public class PurchaseView implements ActionListener, SHPRCConstants {
 		} else if (src instanceof ProductJButton) {
 			int productID = ((ProductJButton) src).getProductID();
 			controller.addProduct(productID);
+		} else if (src == deleteButton) {
+			controller.highlightPurchaseProducts();
 		}
 	}
 
 	public void displayPurchase (HashMap<Product, Integer> purchaseProducts, int total) {
-		purchaseList.removeAll();
+		priceListBox.removeAll();
+		productListBox.removeAll();
+		totalPanel.removeAll();
 		purchaseList.repaint();
 		ArrayList<LabelAppearanceJButton> buttons = new ArrayList<LabelAppearanceJButton>();
 		NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.US);
@@ -195,23 +217,57 @@ public class PurchaseView implements ActionListener, SHPRCConstants {
 		for (int i = 0; it.hasNext(); i++) {
 			Map.Entry<Product, Integer> pair = (Entry<Product, Integer>) it.next();
 			Product product = pair.getKey();
+			String productName = product.getName();
+			int productPrice = product.getPrice();
 			int quantity = pair.getValue();
-			String text = product.getName() + "        " + currencyFormat.format(quantity*product.getPrice()/100.0);
-			LabelAppearanceJButton button = new LabelAppearanceJButton(text);
-			button.addActionListener(this);
-			buttons.add(button);
+			String totalPriceString = currencyFormat.format(productPrice*quantity/100.0);
+
+			LabelAppearanceJButton productButton = new LabelAppearanceJButton(productName);
+			productButton.addActionListener(this);
+			buttons.add(productButton);
+			productListBox.add(productButton);
+
+			HelveticaJLabel totalPriceLabel = new HelveticaJLabel(totalPriceString, 16);
+			priceListBox.add(totalPriceLabel);
+
+			if (quantity > 1) {
+				String priceString = currencyFormat.format(productPrice/100.0);
+				String str = quantity + " @ " + priceString;
+				JLabel quantityLabel = new HelveticaJLabel("      " + str, 14);
+				productListBox.add(quantityLabel);
+				JLabel dummyLabel = new HelveticaJLabel(" ", 14); //creates an invisible JLabel to maintain spacing
+				priceListBox.add(dummyLabel);
+			} 
+
 		}
-		for (LabelAppearanceJButton button : buttons) {
-			purchaseList.add(button);
-		}
-		purchaseList.add(new LabelAppearanceJButton("-----"));
-		purchaseList.add(new LabelAppearanceJButton("TOTAL"));
-		purchaseList.add(new LabelAppearanceJButton(currencyFormat.format(total/100.0)));
+		productListBox.validate();
+		priceListBox.validate();
+		totalPanel.add(new HelveticaJLabel("TOTAL", 16), BorderLayout.WEST);
+		HelveticaJLabel totalLabel = new HelveticaJLabel(currencyFormat.format(total/100.0), 16);
+		totalPanel.add(totalLabel, BorderLayout.EAST);
 		purchaseList.validate();
 	}
-	
+
 	public int getQuantity() {
-		String inputValue = JOptionPane.showInputDialog("Specify a quantity: ");
-		return Integer.parseInt(inputValue);
+		String inputValue = JOptionPane.showInputDialog(frame, "Specify a quantity: ");
+		if (inputValue == null) {
+			return 0;
+		}
+		try {
+			int quantity = Integer.parseInt(inputValue);
+			return quantity;
+		}
+		catch (NumberFormatException e) {
+			return INVALID_NUMBER_INPUT;
+		}
 	}
+
+	public void highlightProducts() {
+		for (Component c: productListBox.getComponents()) {
+			if (c instanceof LabelAppearanceJButton) {
+				((LabelAppearanceJButton) c).setContentAreaFilled(true);
+			}
+		}
+	}
+	
 }

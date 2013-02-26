@@ -12,17 +12,26 @@ public class PurchaseController implements SHPRCConstants {
 		
 	}
 	
-	public void addProduct(int productID) {
+	
+	public boolean addProduct(int productID) {
 
 		int quantity;
 		if (productID == 100 || productID == 102 || productID == 200 ) {
 			quantity = view.getQuantity();
+			if (quantity == 0) {
+				return true;
+			}
+			if (quantity == INVALID_NUMBER_INPUT || quantity < 0) {
+				view.inputError("Please enter a positive whole number.");
+				return false;
+			}
 		} else {
 			quantity = 1;
 		}
 		
 		model.addProduct(rDB.getProduct(productID), quantity);
 		view.displayPurchase(model.getPurchaseProducts(), model.tallyPurchaseTotal());
+		return true;
 	}
 	
 	public boolean setClient(String suidStr, String affiliation) {
@@ -42,5 +51,8 @@ public class PurchaseController implements SHPRCConstants {
 		return true;
 		
 	}
-
+	
+	public void highlightPurchaseProducts() {
+		view.highlightProducts();
+	}
 }
