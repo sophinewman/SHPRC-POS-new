@@ -56,8 +56,8 @@ public class RunnableTester {
 	private static void testPurchaseAndClient(RuntimeDatabase rDB) {
 		System.out.println(rDB.getPregnancyTestProduct());
 
-		boolean print = rDB.qualifiesForPregnancyTestSubsidy(1000);
-		System.out.println("Frosh qualifies for Pregnancy Test Subsidy: " + print);
+//		boolean print = rDB.qualifiesForPregnancyTestSubsidy(1000);
+//		System.out.println("Frosh qualifies for Pregnancy Test Subsidy: " + print);
 
 		Client sophi = rDB.lookupClient(5573646);
 		System.out.println("Sophi: " + sophi);

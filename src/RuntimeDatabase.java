@@ -5,7 +5,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Vector;
 
 /**
  * SHPRC-POS
@@ -23,8 +25,8 @@ public class RuntimeDatabase {
 	/* The JDBC Connection that backs the class */
 	private Connection connection;
 
-	private HashMap<Integer, Integer> affiliationCreditMap;
-	private HashMap<Integer, Boolean> affiliationPregnancyTestSubsidy;
+	private Vector<Affiliation> affiliations;
+	private HashMap<Integer, Affiliation> affiliationMap;
 	private HashMap<Integer, Product> productMap;
 	private ArrayList<Product> productList;
 	private Product pregnancyTest;
@@ -137,25 +139,31 @@ public class RuntimeDatabase {
 	 * @return successfully initialized
 	 */
 	private boolean initializeAffiliationMaps() {
-		affiliationCreditMap = new HashMap<Integer, Integer>();
-		affiliationPregnancyTestSubsidy = new HashMap<Integer, Boolean>();
+		affiliationMap = new HashMap<Integer, Affiliation>();
+		affiliations = new Vector<Affiliation>();
 		try {
 			Statement stmt = connection.createStatement();
 			ResultSet rs = stmt.executeQuery("SELECT * FROM Affiliation");
-			while (rs.next()) {
+			for (int i = 0; rs.next(); i++) {
 				int affiliationID = rs.getInt("affiliationID");
 				int affiliationCredit = rs.getInt("affiliationCredit");
 				boolean qualifiesForSubsidy = rs.getBoolean("qualifiesForSubsidy");
-				affiliationCreditMap.put(affiliationID, affiliationCredit);
-				affiliationPregnancyTestSubsidy.put(affiliationID, qualifiesForSubsidy);
+				String affiliationName = rs.getString("affiliationName");
+				Affiliation affiliation = new Affiliation(affiliationID, affiliationName, affiliationCredit, qualifiesForSubsidy);
+				affiliationMap.put(affiliationID, affiliation);
+				affiliations.add(affiliation);
 
 			}
 		}
 		catch (SQLException e) {
 			System.out.println(e.getMessage());
 		}
-		return (affiliationCreditMap != null && affiliationPregnancyTestSubsidy != null);
+		return (affiliationMap != null && affiliations != null);
 
+	}
+	
+	public Vector<Affiliation> getAffiliations() {
+		return affiliations;
 	}
 
 
@@ -177,7 +185,8 @@ public class RuntimeDatabase {
 				int creditAvailable = rs.getInt("creditAvailable");
 				boolean pregnancyTestUsed = rs.getBoolean("pregnancyTestUsed");
 				int affiliationID = rs.getInt("affiliationID");
-				boolean qualifiesForPregnancyTestSubsidy = qualifiesForPregnancyTestSubsidy(affiliationID);
+				Affiliation affiliation = affiliationMap.get(affiliationID);
+				boolean qualifiesForPregnancyTestSubsidy = affiliation.qualifiesForPregnancyTest();
 				Client client = 
 					new Client(SUID, affiliationID, creditAvailable, 
 							pregnancyTestUsed, qualifiesForPregnancyTestSubsidy);
@@ -185,6 +194,9 @@ public class RuntimeDatabase {
 			}
 		}
 		catch (SQLException e) {
+			System.err.println(e.getMessage());
+		}
+		catch (NullPointerException e) {
 			System.err.println(e.getMessage());
 		}
 		return null;
@@ -196,11 +208,11 @@ public class RuntimeDatabase {
 	 * @param affiliationID the integer community/class affiliation ID to be looked up.
 	 * @return the amount of credit a given affiliation receives
 	 */
-	public int getCredit(int affiliationID) {
-		if (affiliationCreditMap.containsKey(affiliationID)) {
-			return affiliationCreditMap.get(affiliationID);
+	public Affiliation getAffiliation(int affiliationID) {
+		if (affiliationMap.containsKey(affiliationID)) {
+			return affiliationMap.get(affiliationID);
 		}
-		return 0;
+		return null;
 	}
 
 	
@@ -212,19 +224,6 @@ public class RuntimeDatabase {
 		return pregnancyTest;
 	}
 
-	
-	/**
-	 * Returns whether a given affiliation qualifies for a free pregnancy test.
-	 * @param affiliationID the integer community/class affiliation ID to be looked up.
-	 * @return whether the affiliation qualifies for a free pregnancy test
-	 */
-	public boolean qualifiesForPregnancyTestSubsidy(int affiliationID) {
-		if (affiliationPregnancyTestSubsidy.containsKey(affiliationID)) {
-			return affiliationPregnancyTestSubsidy.get(affiliationID);
-		}
-		return false;
-	}
-	
 	
 	/**
 	 * Returns the product associated with the specified productID.

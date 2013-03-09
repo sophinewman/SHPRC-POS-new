@@ -1,16 +1,16 @@
-import java.awt.Color;
 import java.awt.Font;
 
-import javax.swing.Action;
 import javax.swing.BorderFactory;
-import javax.swing.Icon;
 import javax.swing.JButton;
 
 
-public class LabelAppearanceJButton extends JButton {
+public class LabelAppearanceJButton extends JButton implements SHPRCConstants {
+	
+	private int productID;
 
-	public LabelAppearanceJButton(String str) {
+	public LabelAppearanceJButton(String str, int productID) {
 		super(str);
+		this.productID = productID;
 		this.setFocusPainted(false);
 		this.setBorder(BorderFactory.createEmptyBorder(1, 4, 1, 4));
 		this.setContentAreaFilled(false);
@@ -21,10 +21,13 @@ public class LabelAppearanceJButton extends JButton {
 	}
 	
 	public void setHighlight() {
-		this.setForeground(Color.MAGENTA);
+		this.setBackground(HIGHLIGHT_YELLOW);
+		this.setOpaque(true);
 	}
 
-
+	public int getProductID() {
+		return productID;
+	}
 
 
 

@@ -12,10 +12,9 @@ import java.util.HashMap;
  */
 
 
-public class PurchaseModel {
+public class PurchaseModel implements SHPRCConstants {
 
-	/* indices for the totals array */
-	private static final int SUBTOTAL = 0, CREDIT = 1, PT_SUBSIDY = 2, TOTAL = 3;
+
 
 	/* total stores the subtotal, credit used, preg. test subsidy, and total of an order */
 	private int[] totals = {0,0,0,0};
@@ -44,7 +43,7 @@ public class PurchaseModel {
 		return currentClient;
 	}
 
-	
+
 	public HashMap<Product, Integer> getPurchaseProducts() {
 		return products;
 	}
@@ -61,11 +60,12 @@ public class PurchaseModel {
 	 */
 	public void setCurrentClient(int suid, int affiliationID) {
 		currentClient = rDB.lookupClient(suid);
+		Affiliation affiliation = rDB.getAffiliation(affiliationID);
 		if (currentClient == null) {
-			int creditAvailable = rDB.getCredit(affiliationID);
-			boolean qualifiesForPregnancyTest = rDB.qualifiesForPregnancyTestSubsidy(affiliationID);
+			int creditAvailable = affiliation.getCredit();
+			boolean qualifiesForPregnancyTest = affiliation.qualifiesForPregnancyTest();
 			currentClient = 
-				new Client(suid, affiliationID, creditAvailable, qualifiesForPregnancyTest, false);
+				new Client(suid, affiliationID, creditAvailable, false, qualifiesForPregnancyTest);
 		}
 	}
 
@@ -76,13 +76,15 @@ public class PurchaseModel {
 	 *  @param qty the quantity of the product to be added to a purchase
 	 */
 	public void addProduct(Product product, int qty) {
-		if (products.get(product) != null) {
-			int currentQty = products.get(product);
-			products.put(product, currentQty + qty);
-			totals[SUBTOTAL] += product.getPrice() * qty;
-		} else {
-			products.put(product, qty);
-			totals[SUBTOTAL] += product.getPrice() * qty;
+		if (qty != 0) {
+			if (products.get(product) != null) {
+				int currentQty = products.get(product);
+				products.put(product, currentQty + qty);
+				totals[SUBTOTAL] += product.getPrice() * qty;
+			} else {
+				products.put(product, qty);
+				totals[SUBTOTAL] += product.getPrice() * qty;
+			}
 		}
 	}
 
@@ -93,8 +95,8 @@ public class PurchaseModel {
 	 * @param product the product to be removed from a purchase
 	 */
 	public void removeProduct(Product product) {
-		products.remove(product);
 		totals[SUBTOTAL] -= getCurrentProductCost(product);
+		products.remove(product);
 	}
 
 
@@ -114,6 +116,11 @@ public class PurchaseModel {
 		int total = totals[SUBTOTAL] + totals[CREDIT] + totals[PT_SUBSIDY];
 		totals[TOTAL] = total;
 		return total;
+	}
+	
+	public int[] getTotals() {
+		tallyPurchaseTotal();
+		return totals;
 	}
 
 
