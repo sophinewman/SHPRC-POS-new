@@ -15,9 +15,10 @@ import javax.swing.border.LineBorder;
 
 public class PurchaseView implements ActionListener, SHPRCConstants {
 	private PurchaseController controller;
-	private ArrayList<Product> productList;
-	private Vector<Affiliation> affiliations;
 	private JFrame frame;
+	private CardLayout cardLayout = new CardLayout();
+	private JPanel purchasePane;
+	private JPanel adminPane;
 	private JPanel buttonPanel;
 	private JTextField textField;
 	private JComboBox affiliationComboBox;
@@ -27,6 +28,7 @@ public class PurchaseView implements ActionListener, SHPRCConstants {
 	private JButton deleteButton;
 	private JButton submitButton;
 	private JButton adminViewButton;
+	private JButton purchaseViewButton;
 	private JButton voidButton;
 	private JPanel purchaseList;
 	private JPanel productListBox;
@@ -40,50 +42,69 @@ public class PurchaseView implements ActionListener, SHPRCConstants {
 
 	public PurchaseView(PurchaseController controller, ArrayList<Product> productList, Vector<Affiliation> affiliations) {
 		this.controller = controller;
-		this.productList = productList;
-		this.affiliations = affiliations;
-		drawComponents();
+		drawFrame();
+		drawPurchasePane(productList, affiliations);
+		drawAdminPane();
+		frame.add(purchasePane, PURCHASE_PANE);
+		frame.add(adminPane, ADMIN_PANE);
 		frame.setVisible(true);
 
 	}
-
-	private void drawComponents() {
+	
+	private void drawFrame() {
 		frame = new JFrame("SHPRC Point-of-Sale");
 		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		frame.setSize(new Dimension(820, 600));
 		frame.setResizable(false);
-		frame.setLayout(null);
+		frame.setLayout(cardLayout);
+	}
+
+	private void drawAdminPane() {
+		adminPane = new JPanel();
+		adminPane.setSize(new Dimension(820, 600));
+		adminPane.setLayout(new BorderLayout());
+		purchaseViewButton = new JButton("Take me home!");
+		adminPane.add(purchaseViewButton, BorderLayout.CENTER);
+	}
+	
+	private void drawPurchasePane(ArrayList<Product> productList, Vector<Affiliation> affiliations) {
+		purchasePane = new JPanel();
+		purchasePane.setSize(new Dimension(820, 600));
+		purchasePane.setLayout(null);
 
 		buttonPanel = new JPanel();
 		buttonPanel.setLocation(20, 20);
 		buttonPanel.setSize(new Dimension(440, 440));
 		buttonPanel.setLayout(new GridLayout(0, 4, 2, 2));
-		drawProductButtons();
-		frame.add(buttonPanel);
+		drawProductButtons(productList);
+		purchasePane.add(buttonPanel);
 
-		drawClientComponents();
+		drawClientComponents(affiliations);
 
 		drawPurchaseComponents();
 
 		drawLeftButtons();
 		
-		frame.validate();
+		purchasePane.setVisible(true);
+		
+//		purchasePane.validate();
 	}
 
 	private void drawLeftButtons() {
 		adminViewButton = new JButton("Administrator View");
 		adminViewButton.setFont(new Font("Helvetica", Font.BOLD, 13));
 		adminViewButton.setBounds(20, 528, 175, 31);
-		frame.add(adminViewButton);
+		adminViewButton.addActionListener(this);
+		purchasePane.add(adminViewButton);
 
 		voidButton = new JButton("Void");
 		voidButton.setFont(new Font("Helvetica", Font.BOLD, 13));
 		voidButton.setBounds(205, 528, 130, 31);
-		frame.add(voidButton);
+		purchasePane.add(voidButton);
 	}
 	
 	
-	private void drawProductButtons() {
+	private void drawProductButtons(ArrayList<Product> productList) {
 		NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.US);
 		for (Product p : productList) {
 			ProductJButton pjb = new ProductJButton("<html><center>"+currencyFormat.format(p.getPrice()/100.0)+
@@ -98,11 +119,11 @@ public class PurchaseView implements ActionListener, SHPRCConstants {
 		purchaseButtonPanel.setBounds(480, 150, 320, 31);
 		purchaseButtonPanel.setLayout(new GridLayout(1, 3, 2, 0) );
 		drawPurchaseModifierButtons(purchaseButtonPanel);
-		frame.add(purchaseButtonPanel);
+		purchasePane.add(purchaseButtonPanel);
 		
 		purchaseList = new JPanel();
 		purchaseList.setBounds(480, 187, 320, 336);
-		frame.add(purchaseList);
+		purchasePane.add(purchaseList);
 		purchaseList.setBorder(BorderFactory.createLineBorder(LIGHT_GREY));
 		purchaseList.setLayout(new BorderLayout());
 		purchaseList.setVisible(true);
@@ -137,10 +158,10 @@ public class PurchaseView implements ActionListener, SHPRCConstants {
 		submitButton.addActionListener(this);
 		
 		submitButton.setBounds(480, 528, 320, 31);
-		frame.add(submitButton);
+		purchasePane.add(submitButton);
 	}
 
-	private void drawClientComponents() {
+	private void drawClientComponents(Vector<Affiliation> affiliations) {
 		JPanel clientPanel = new JPanel();
 		clientPanel.setLayout(null);
 		clientPanel.setBorder(new LineBorder(LIGHT_GREY));
@@ -178,7 +199,7 @@ public class PurchaseView implements ActionListener, SHPRCConstants {
 		enterButton.addActionListener(this);
 		clientPanel.add(enterButton);
 		
-		frame.add(clientPanel);
+		purchasePane.add(clientPanel);
 	}
 
 	private void drawPurchaseModifierButtons (JPanel panel) {
@@ -204,7 +225,7 @@ public class PurchaseView implements ActionListener, SHPRCConstants {
 	}
 
 	public void inputError (String errorMessage) {
-		JOptionPane.showMessageDialog(frame, errorMessage, "Input Error", JOptionPane.ERROR_MESSAGE);
+		JOptionPane.showMessageDialog(purchasePane, errorMessage, "Input Error", JOptionPane.ERROR_MESSAGE);
 	}
 
 	public void actionPerformed(ActionEvent event) {
@@ -231,6 +252,8 @@ public class PurchaseView implements ActionListener, SHPRCConstants {
 			
 		} else if (src == clearButton) {
 			controller.clear();
+		} else if (src == adminViewButton) {
+			controller.switchToAdmin();
 		}
 	}
 	
@@ -309,7 +332,7 @@ public class PurchaseView implements ActionListener, SHPRCConstants {
 	}
 
 	public int getQuantity() {
-		String inputValue = JOptionPane.showInputDialog(frame, "Specify a quantity: ");
+		String inputValue = JOptionPane.showInputDialog(purchasePane, "Specify a quantity: ");
 		if (inputValue == null) {
 			return 0;
 		}
@@ -323,11 +346,15 @@ public class PurchaseView implements ActionListener, SHPRCConstants {
 	}
 	
 	public int confirmDecision(String str) {
-		return JOptionPane.showConfirmDialog(frame, str, "Consent Is Active", JOptionPane.YES_NO_OPTION);
+		return JOptionPane.showConfirmDialog(purchasePane, str, "Consent Is Active", JOptionPane.YES_NO_OPTION);
 	}
 
 	public void highlightProductToModify(LabelAppearanceJButton button) {
 		button.setHighlight();
+	}
+	
+	public void switchView(String str) {
+		cardLayout.show(frame.getContentPane(), str);
 	}
 
 }

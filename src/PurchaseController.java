@@ -103,6 +103,12 @@ public class PurchaseController implements SHPRCConstants {
 			view.displayPurchase(model.getPurchaseProducts(), model.getTotals());
 		}
 	}
+	
+	public void switchToAdmin() {
+		if (view.confirmDecision("Would you like to switch to Administrator View?") == JOptionPane.YES_OPTION) {
+			view.switchView(ADMIN_PANE);
+		}
+	}
 }
 
 

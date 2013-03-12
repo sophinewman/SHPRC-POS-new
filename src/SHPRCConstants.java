@@ -16,5 +16,8 @@ public interface SHPRCConstants {
 	
 	/* indices for the totals array */
 	public static final int SUBTOTAL = 0, CREDIT = 1, PT_SUBSIDY = 2, TOTAL = 3;
+	
+	public static final String PURCHASE_PANE = "Purchase Pane";
+	public static final String ADMIN_PANE = "Admin Pane";
 
 }
