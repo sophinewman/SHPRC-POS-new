@@ -69,6 +69,9 @@ public class PurchaseModel implements SHPRCConstants {
 		}
 	}
 
+	public void setCurrentClient(Object obj) {
+		currentClient = null;
+	}
 
 	/**
 	 * Adds a product in the specified quantity to the purchase and updates the total.

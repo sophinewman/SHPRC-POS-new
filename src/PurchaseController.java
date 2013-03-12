@@ -92,21 +92,37 @@ public class PurchaseController implements SHPRCConstants {
 	public void clear() {
 		if (view.confirmDecision("<html>Are you sure you want to clear this order?<br>This cannot be undone.</html>") 
 				== JOptionPane.YES_OPTION) {
-			HashMap<Product, Integer> products = model.getPurchaseProducts();
-			ArrayList<Product> toDelete = new ArrayList<Product>();
-			for (Product p: products.keySet() ) { 
-				toDelete.add(p);
-			}
-			for (Product p: toDelete) {
-				model.removeProduct(p);
-			}
+			clearProducts();
 			view.displayPurchase(model.getPurchaseProducts(), model.getTotals());
 		}
 	}
 	
+	private void clearProducts() {
+		HashMap<Product, Integer> products = model.getPurchaseProducts();
+		ArrayList<Product> toDelete = new ArrayList<Product>();
+		for (Product p: products.keySet() ) { 
+			toDelete.add(p);
+		}
+		for (Product p: toDelete) {
+			model.removeProduct(p);
+		}
+	}
+	
 	public void switchToAdmin() {
-		if (view.confirmDecision("Would you like to switch to Administrator View?") == JOptionPane.YES_OPTION) {
+		if (view.confirmDecision("<html>Would you like to switch to Administrator View?<br>This will clear your current purchase.</html>") == JOptionPane.YES_OPTION) {
+//			clearProducts();
+//			model.setCurrentClient(null);
 			view.switchView(ADMIN_PANE);
+		}
+	}
+	
+	public void switchToPurchase() {
+		if (view.confirmDecision("Would you like to switch to Purchase View?") == JOptionPane.YES_OPTION) {
+			rDB.initRuntimeDatabase();
+			model = new PurchaseModel(rDB);
+			view.closeWindow();
+			view = new PurchaseView(this, rDB.getProductList(), rDB.getAffiliations());
+			view.switchView(PURCHASE_PANE);
 		}
 	}
 }
