@@ -10,6 +10,9 @@ public interface SHPRCConstants {
 			new Color(204, 255, 254), new Color(204, 255, 204), 
 			new Color(204, 204, 255), new Color(244, 204, 244)};
 
+	public static final int MOST_RECENT = 0;
+	public static final int MIDDLE = 1;
+	public static final int LEAST_RECENT = 2;
 	
 	public static final int INVALID_NUMBER_INPUT = -1;
 	public static final int CANCEL_INPUT = 0;
@@ -26,5 +29,7 @@ public interface SHPRCConstants {
 	public static final String MANAGE_AFFILIATIONS_AND_CREDIT = "Manage Affiliations and Credit";
 	
 	public NumberFormat CURRENCY_FORMAT = NumberFormat.getCurrencyInstance(Locale.US);
+	
+	public static final int MINIMUM_PURCHASE_ID = 3000;
 
 }

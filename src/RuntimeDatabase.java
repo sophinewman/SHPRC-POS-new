@@ -4,10 +4,15 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * SHPRC-POS
@@ -20,7 +25,7 @@ import java.util.ArrayList;
  * @author Sophi Newman
  * @version 0.1 2/8/13
  */
-public class RuntimeDatabase {
+public class RuntimeDatabase implements SHPRCConstants{
 
 	/* The JDBC Connection that backs the class */
 	private Connection connection;
@@ -577,6 +582,74 @@ public class RuntimeDatabase {
 			pstmt.setString(1, name);
 			pstmt.setInt(2, categoryID);
 			pstmt.executeUpdate();
+		}
+		catch (SQLException e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
+		catch (NullPointerException e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
+		return true;
+	}
+	
+	public boolean writePurchase (PurchaseModel purchase) {
+		
+		int purchaseID = 0;
+		
+		try {
+			/* A PreparedStatement is used here to ensure that the SQL query is correctly formatted
+			 and to allow for more easily human-readable variable insertion. */
+			connection.setAutoCommit(false);
+			PreparedStatement pstmt = null;
+			pstmt = connection.prepareStatement("SELECT Max(purchaseID) AS maxID from Purchase");
+			ResultSet rs = pstmt.executeQuery();
+			if (rs.next()) {
+				purchaseID = rs.getInt("maxID");
+			}
+			if (purchaseID > 0) {
+				purchaseID++;
+			} else {
+				purchaseID = MINIMUM_PURCHASE_ID;
+			}
+			
+			int[] totals = purchase.getTotals();
+			Client client = purchase.getCurrentClient();
+			
+			int credit = -1 * totals[CREDIT];
+			int total = totals[TOTAL];
+			Date date= new Date();
+			Timestamp timestamp = new Timestamp(date.getTime());
+			int affiliationID = client.getAffiliation();
+			
+			pstmt = connection.prepareStatement("INSERT INTO Purchase VALUES (?, ?, ?, ?, ?)");
+			pstmt.setInt(1, purchaseID);
+			pstmt.setString(2, timestamp.toString());
+			pstmt.setInt(3, total);
+			pstmt.setInt(4, credit);
+			pstmt.setInt(5, affiliationID);
+			
+			HashMap<Product, Integer> productsPurchased = purchase.getPurchaseProducts();
+			
+			Iterator it = productsPurchased.entrySet().iterator();
+			while (it.hasNext()) {
+				Map.Entry<Product, Integer> pair = (Entry<Product, Integer>) it.next();
+				Product product = pair.getKey();
+				int productID = product.getProductID();
+				int quantity = pair.getValue();
+				pstmt = connection.prepareStatement("INSERT INTO PurchasedProduct VALUES (?, ?, ?)");
+				pstmt.setInt(1, purchaseID);
+				pstmt.setInt(2, productID);
+				pstmt.setInt(3, quantity);
+			}
+			
+//TODO needs to update Client where appropriate and insert new where appropriate.			
+			pstmt = connection.prepareStatement("INSERT INTO Client VALUES(?, ?, ?, ?)");
+			pstmt.setInt(1, client.getSUID());
+			
+			connection.commit();
+			connection.setAutoCommit(true);
 		}
 		catch (SQLException e) {
 			System.err.println(e.getMessage());

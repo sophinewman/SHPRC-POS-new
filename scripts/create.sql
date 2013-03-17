@@ -20,7 +20,7 @@ create table Product (
 );
 
 create table Purchase (
-	PurchaseID INT PRIMARY KEY,
+	purchaseID INT PRIMARY KEY,
 	time TEXT,
 	total INT,
 	creditUsed INT,
@@ -29,8 +29,9 @@ create table Purchase (
 );
 
 create table PurchasedProduct (
-	PurchaseID INT REFERENCES Purchase,
+	purchaseID INT REFERENCES Purchase,
 	productID INT REFERENCES Product,
+	quantity INT,
 	PRIMARY KEY (PurchaseID, productID)
 );
 

@@ -20,10 +20,7 @@ public class PurchaseView implements ActionListener, SHPRCConstants {
 	private JPanel adminButtonPane;
 	private HelveticaJButton manageProductsButton;
 	private HelveticaJButton manageAffiliationsButton;
-	private HelveticaJButton toggleTestSubsidyButton;
 	private HelveticaJButton manageCategoriesButton;
-//	private HelveticaJButton changePasswordButton;
-//	private HelveticaJButton resetButton;
 	
 	private PurchaseController controller;
 	
@@ -51,7 +48,6 @@ public class PurchaseView implements ActionListener, SHPRCConstants {
 	private JPanel totalLabelBox;
 	private JPanel totalPriceBox;
 	
-//	private NumberFormat CURRENCY_FORMAT = NumberFormat.getCurrencyInstance(Locale.US);
 	
 	public JFrame getRootFrame() {
 		return frame;
@@ -304,6 +300,9 @@ public class PurchaseView implements ActionListener, SHPRCConstants {
 		} else if (src == clearButton) {
 			controller.clear();
 			
+		} else if (src == submitButton) {
+			controller.submitPurchase();
+			
 		} else if (src == adminViewButton) {
 			controller.switchToAdmin();
 			
@@ -409,6 +408,13 @@ public class PurchaseView implements ActionListener, SHPRCConstants {
 	
 	public int confirmDecision(String str) {
 		return JOptionPane.showConfirmDialog(frame, str, "Consent Is Active", JOptionPane.YES_NO_OPTION);
+	}
+	
+	public String displayTotalDialog(String total) {
+		TotalDialog totalDialog = new TotalDialog(controller, frame, total);
+		totalDialog.setVisible(true);
+		return null;
+		
 	}
 
 	public void highlightProductToModify(LabelAppearanceJButton button) {

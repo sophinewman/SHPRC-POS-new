@@ -150,7 +150,7 @@ public class PurchaseModel implements SHPRCConstants {
 	 * is set to the available credit. If no client has been set, the method returns 0.
 	 * @return the credit to be applied to the purchase.
 	 */
-	private int calculateCredit() {
+	public int calculateCredit() {
 		if (currentClient == null) {
 			return 0;
 		}

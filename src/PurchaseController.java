@@ -7,6 +7,7 @@ import javax.swing.JOptionPane;
 
 
 public class PurchaseController implements SHPRCConstants {
+	private PurchaseModel[] lastThreePurchases = new PurchaseModel[3];
 	private PurchaseModel model;
 	private PurchaseView view;
 	private RuntimeDatabase rDB;
@@ -75,6 +76,10 @@ public class PurchaseController implements SHPRCConstants {
 		}
 
 	}
+	
+	public void submitPurchase() {
+		view.displayTotalDialog(CURRENCY_FORMAT.format(model.tallyPurchaseTotal()/100.0));
+	}
 
 	public void changeQuantity() {
 		if (selectedProduct != null) {
@@ -110,8 +115,6 @@ public class PurchaseController implements SHPRCConstants {
 	
 	public void switchToAdmin() {
 		if (view.confirmDecision("<html>Would you like to switch to Administrator View?<br>This will clear your current purchase.</html>") == JOptionPane.YES_OPTION) {
-//			clearProducts();
-//			model.setCurrentClient(null);
 			view.switchView(ADMIN_PANE);
 		}
 	}
@@ -128,6 +131,35 @@ public class PurchaseController implements SHPRCConstants {
 	
 	public void adminDialog(String task) {
 		DialogController dialogController = new DialogController(rDB, view.getRootFrame(), task);
+	}
+	
+	public boolean cashTendered(String tendered, TotalDialog dialog) {
+		double centsTendered;
+		try {
+			centsTendered = Double.parseDouble(tendered);
+			centsTendered *= 100;
+			int changeDue = (int)centsTendered - model.tallyPurchaseTotal();
+			if (changeDue < 0 ) {
+				return false;
+			}
+			dialog.dispose();
+			dialog.showChangeMessage(CURRENCY_FORMAT.format(changeDue/100.0));
+		} catch (NumberFormatException e) {
+			return false;
+			
+		}
+		return true;
+	}
+	
+	private void updateLastPurchases() {
+		lastThreePurchases[LEAST_RECENT] = lastThreePurchases[MIDDLE];
+		lastThreePurchases[MIDDLE] = lastThreePurchases[MOST_RECENT];
+		lastThreePurchases[MOST_RECENT] = model;
+	}
+	
+	public void commitPurchase() {
+		rDB.writePurchase(model);
+
 	}
 }
 
