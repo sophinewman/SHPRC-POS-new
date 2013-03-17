@@ -125,6 +125,10 @@ public class PurchaseController implements SHPRCConstants {
 			view.switchView(PURCHASE_PANE);
 		}
 	}
+	
+	public void adminDialog(String task) {
+		DialogController dialogController = new DialogController(rDB, view.getRootFrame(), task);
+	}
 }
 
 

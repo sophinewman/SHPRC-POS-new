@@ -13,15 +13,14 @@ public class ProductJButton extends JButton implements SHPRCConstants {
 		super(str);
 		this.productID = productID;
 		this.setFont(new Font("Helvetica", Font.BOLD, 14));
-		this.setBackground(getColor());
+		this.setBackground(getColor(str));
 	}
 	
-	private Color getColor() {
+	private Color getColor(String str) {
 		if (productID/100 >= COLORS.length) {
 			return LIGHT_GREY;
-			
 		}
-		return COLORS[productID/100];
+		return COLORS[productID/100 - 1];
 	}
 	
 	public int getProductID() {

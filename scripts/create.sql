@@ -7,8 +7,7 @@ create table Affiliation (
 
 create table Category (
 	categoryID INT PRIMARY KEY,
-	categoryName TEXT,
-	categoryColor TEXT
+	categoryName TEXT
 );
 
 create table Product (
@@ -17,9 +16,7 @@ create table Product (
 	price INT,
 	cost INT,
 	isPregnancyTest BOOLEAN,
-	categoryID INT REFERENCES Category,
-	x INT,
-	y INT
+	categoryID INT REFERENCES Category
 );
 
 create table Purchase (

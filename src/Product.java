@@ -1,3 +1,6 @@
+import java.text.NumberFormat;
+import java.util.Locale;
+
 /**
  * SHPRC-POS
  * Product.java
@@ -7,7 +10,7 @@
  * @version 0.1 2/8/13
  */
 
-public class Product {
+public class Product implements SHPRCConstants{
 
 	/* The unique ID number associated with the given product */
 	private int productID;
@@ -15,11 +18,22 @@ public class Product {
 	/* The retail price for the given product */
 	private int price;
 	
-	/* The name of the given product */
-	private String name;
+	private int cost;
+	
+	/**
+	 * @return the cost
+	 */
+	public int getCost() {
+		return cost;
+	}
+
+	/* The productName of the given product */
+	private String productName;
 	
 	/* The ID number of the category to which the product belongs */
 	private int categoryID;
+	
+	private String categoryName;
 
 	
 	
@@ -27,14 +41,16 @@ public class Product {
 	 * Class constructor.
 	 * @param productID the productID of the product to be created
 	 * @param price the cost of the product in cents
-	 * @param name
+	 * @param productName
 	 * @param categoryID
 	 */
-	public Product(int productID, int price, String name, int categoryID) {
+	public Product(int productID, int price, int cost, String productName, int categoryID, String categoryName) {
 		this.productID = productID;
 		this.price = price;
-		this.name = name;
+		this.cost = cost;
+		this.productName = productName;
 		this.categoryID = categoryID;
+		this.categoryName = categoryName;
 
 	}
 	
@@ -66,11 +82,11 @@ public class Product {
 	}
 	
 	/**
-	 * Returns the name of the product.
-	 * @return the name of the product.
+	 * Returns the productName of the product.
+	 * @return the productName of the product.
 	 */
 	public String getName() {
-		return name;
+		return productName;
 	}
 	
 	/**
@@ -79,7 +95,8 @@ public class Product {
 	 */
 	@Override
 	public String toString() {
-		return "Name: " + name + " Category ID: " + categoryID + " Price: "+ price;
+		
+		return "<html><u>" + productName + ":</u> " + CURRENCY_FORMAT.format(price/100.0) + ", <i>" + categoryName + "</i></html>";
 	}
 
 }

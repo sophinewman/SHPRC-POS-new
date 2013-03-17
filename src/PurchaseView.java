@@ -6,7 +6,7 @@ import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Vector;
+import java.util.ArrayList;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -51,10 +51,14 @@ public class PurchaseView implements ActionListener, SHPRCConstants {
 	private JPanel totalLabelBox;
 	private JPanel totalPriceBox;
 	
-	private NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.US);
+//	private NumberFormat CURRENCY_FORMAT = NumberFormat.getCurrencyInstance(Locale.US);
+	
+	public JFrame getRootFrame() {
+		return frame;
+	}
 	
 
-	public PurchaseView(PurchaseController controller, ArrayList<Product> productList, Vector<Affiliation> affiliations) {
+	public PurchaseView(PurchaseController controller, ArrayList<Product> productList, ArrayList<Affiliation> affiliations) {
 		this.controller = controller;
 		drawFrame();
 		drawPurchasePane(productList, affiliations);
@@ -86,28 +90,25 @@ public class PurchaseView implements ActionListener, SHPRCConstants {
 		adminButtonPane = new JPanel();
 		adminButtonPane.setSize(600, 100);
 		adminButtonPane.setLocation(110, 200);
-		adminButtonPane.setLayout(new GridLayout(2, 2, 2, 2));
+		adminButtonPane.setLayout(new GridLayout(1, 3, 2, 2));
 		drawAdminButtons();
 		adminPane.add(adminButtonPane);
 		
 	}
 	
 	private void drawAdminButtons() {
-		manageProductsButton = new HelveticaJButton("<html>Manage Products</html>", 16);
+		manageProductsButton = new HelveticaJButton("<html><center>Manage Products</center></html>", 16);
 		manageProductsButton.addActionListener(this);
 		adminButtonPane.add(manageProductsButton);
 
-		manageCategoriesButton = new HelveticaJButton("Manage Categories", 16);
+		manageCategoriesButton = new HelveticaJButton("<html><center>Manage Categories</center></html>", 16);
 		manageCategoriesButton.addActionListener(this);
 		adminButtonPane.add(manageCategoriesButton);
 		
-		manageAffiliationsButton =  new HelveticaJButton("Manage Affiliations and Credit", 16);
+		manageAffiliationsButton =  new HelveticaJButton("<html><center>Manage Affiliations,<p>Credits, and Subsidy</center></html>", 16);
 		manageAffiliationsButton.addActionListener(this);
 		adminButtonPane.add(manageAffiliationsButton);
 		
-		toggleTestSubsidyButton = new HelveticaJButton("Toggle Pregnancy Test Subsidy", 16);
-		toggleTestSubsidyButton.addActionListener(this);
-		adminButtonPane.add(toggleTestSubsidyButton);
 		
 	}
 	
@@ -123,7 +124,7 @@ public class PurchaseView implements ActionListener, SHPRCConstants {
 //		purchasePane.add(voidButton);
 	}
 	
-	private void drawPurchasePane(ArrayList<Product> productList, Vector<Affiliation> affiliations) {
+	private void drawPurchasePane(ArrayList<Product> productList, ArrayList<Affiliation> affiliations) {
 		purchasePane = new JPanel();
 		purchasePane.setSize(new Dimension(820, 600));
 		purchasePane.setLayout(null);
@@ -131,7 +132,7 @@ public class PurchaseView implements ActionListener, SHPRCConstants {
 		buttonPanel = new JPanel();
 		buttonPanel.setLocation(20, 20);
 		buttonPanel.setSize(new Dimension(440, 440));
-		buttonPanel.setLayout(new GridLayout(0, 4, 2, 2));
+		buttonPanel.setLayout(new GridLayout(0, 4, 2, 2)); // "0, 4, 2, 2" specifies unbounded (0) rows with 4 columns and x and y padding of 2.
 		drawProductButtons(productList);
 		purchasePane.add(buttonPanel);
 
@@ -159,9 +160,9 @@ public class PurchaseView implements ActionListener, SHPRCConstants {
 	
 	
 	private void drawProductButtons(ArrayList<Product> productList) {
-		NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.US);
+		NumberFormat CURRENCY_FORMAT = NumberFormat.getCurrencyInstance(Locale.US);
 		for (Product p : productList) {
-			ProductJButton pjb = new ProductJButton("<html><center>"+currencyFormat.format(p.getPrice()/100.0)+
+			ProductJButton pjb = new ProductJButton("<html><center>"+CURRENCY_FORMAT.format(p.getPrice()/100.0)+
 					"<br>"+ p.getName()+"</center></html>", p.getProductID());
 			pjb.addActionListener(this);
 			buttonPanel.add(pjb);
@@ -214,7 +215,7 @@ public class PurchaseView implements ActionListener, SHPRCConstants {
 		purchasePane.add(submitButton);
 	}
 
-	private void drawClientComponents(Vector<Affiliation> affiliations) {
+	private void drawClientComponents(ArrayList<Affiliation> affiliations) {
 		JPanel clientPanel = new JPanel();
 		clientPanel.setLayout(null);
 		clientPanel.setBorder(new LineBorder(LIGHT_GREY));
@@ -241,7 +242,7 @@ public class PurchaseView implements ActionListener, SHPRCConstants {
 		textField.setFont(new Font("Helvetica", Font.PLAIN, 12));
 		clientPanel.add(textField);
 
-		affiliationComboBox = new JComboBox(affiliations);
+		affiliationComboBox = new JComboBox(affiliations.toArray());
 		affiliationComboBox.setBounds(90, 78, 120, 27);
 		affiliationComboBox.setFont(new Font("Helvetica", Font.PLAIN, 12));
 		clientPanel.add(affiliationComboBox);
@@ -308,6 +309,13 @@ public class PurchaseView implements ActionListener, SHPRCConstants {
 			
 		} else if (src == purchaseViewButton) {
 			controller.switchToPurchase();
+		
+		} else if (src == manageProductsButton) {
+			controller.adminDialog(MANAGE_PRODUCTS);
+		} else if (src == manageAffiliationsButton) {
+			controller.adminDialog(MANAGE_AFFILIATIONS_AND_CREDIT);
+		} else if (src == manageCategoriesButton) {
+			controller.adminDialog(MANAGE_CATEGORIES);
 		}
 	}
 	
@@ -337,7 +345,7 @@ public class PurchaseView implements ActionListener, SHPRCConstants {
 			int productPrice = product.getPrice();
 			int productID = product.getProductID();
 			int quantity = pair.getValue();
-			String totalPriceString = currencyFormat.format(productPrice*quantity/100.0);
+			String totalPriceString = CURRENCY_FORMAT.format(productPrice*quantity/100.0);
 
 			LabelAppearanceJButton productButton = new LabelAppearanceJButton(productName, productID);
 			productButton.addActionListener(this);
@@ -349,7 +357,7 @@ public class PurchaseView implements ActionListener, SHPRCConstants {
 			priceListBox.add(totalPriceLabel);
 
 			if (quantity > 1) {
-				String priceString = currencyFormat.format(productPrice/100.0);
+				String priceString = CURRENCY_FORMAT.format(productPrice/100.0);
 				String str = quantity + " @ " + priceString;
 				JLabel quantityLabel = new HelveticaJLabel("      " + str, 14);
 				productListBox.add(quantityLabel);
@@ -366,11 +374,11 @@ public class PurchaseView implements ActionListener, SHPRCConstants {
 		totalLabelBox.add(new HelveticaJLabel("TOTAL", 16));
 		
 		for (int i = SUBTOTAL; i < TOTAL; i++) {
-			HelveticaJLabel label = new HelveticaJLabel(currencyFormat.format(totals[i]/100.0), 14);
+			HelveticaJLabel label = new HelveticaJLabel(CURRENCY_FORMAT.format(totals[i]/100.0), 14);
 			totalPriceBox.add(label);
 			label.setAlignmentX(Component.RIGHT_ALIGNMENT);
 		}
-		HelveticaJLabel totalLabel = new HelveticaJLabel(currencyFormat.format(totals[TOTAL]/100.0), 16);
+		HelveticaJLabel totalLabel = new HelveticaJLabel(CURRENCY_FORMAT.format(totals[TOTAL]/100.0), 16);
 		totalLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
 		totalPriceBox.add(totalLabel);
 		validateBoxes();
@@ -407,12 +415,13 @@ public class PurchaseView implements ActionListener, SHPRCConstants {
 		button.setHighlight();
 	}
 	
-	public void switchView(String str) {
-		cardLayout.show(frame.getContentPane(), str);
+	public void switchView(String view) {
+		cardLayout.show(frame.getContentPane(), view);
 	}
 	
 	public void closeWindow() {
 		frame.dispose();
 	}
+	
 
 }
