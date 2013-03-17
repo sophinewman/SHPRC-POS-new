@@ -6,9 +6,10 @@ import java.util.Locale;
 public interface SHPRCConstants {
 	public static final int N_SUID_DIGITS = 7;
 	public static final Color LIGHT_GREY = new Color(153, 153, 153);
-	public static final Color[] COLORS = { new Color(255, 204, 222), 
-			new Color(204, 255, 254), new Color(204, 255, 204), 
-			new Color(204, 204, 255), new Color(244, 204, 244)};
+	public static final Color[] COLORS = {  new Color(204, 255, 204) /*lime*/, 
+		new Color(204, 255, 254) /*aqua*/, new Color(204, 204, 255) /*lavender*/, 
+		new Color(244, 204, 244) /*pink*/, new Color(255, 204, 222) /*coral*/};
+	
 
 	public static final int MOST_RECENT = 0;
 	public static final int MIDDLE = 1;

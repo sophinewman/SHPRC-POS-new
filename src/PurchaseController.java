@@ -68,17 +68,21 @@ public class PurchaseController implements SHPRCConstants {
 			selectedProduct = null;
 		} else {
 			if (selectedProduct == null) {
-			Product product = rDB.getProduct(button.getProductID());
-			selectedProduct = product;
-			view.enableModifierButtons(true);
-			view.highlightProductToModify(button);
+				Product product = rDB.getProduct(button.getProductID());
+				selectedProduct = product;
+				view.enableModifierButtons(true);
+				view.highlightProductToModify(button);
 			}
 		}
 
 	}
-	
+
 	public void submitPurchase() {
-		view.displayTotalDialog(CURRENCY_FORMAT.format(model.tallyPurchaseTotal()/100.0));
+		if (model.getCurrentClient() != null && model.getPurchaseProducts().size() > 0) {
+			view.displayTotalDialog(CURRENCY_FORMAT.format(model.tallyPurchaseTotal()/100.0));
+		} else {
+			view.inputError("You must specify a client and products to submit a purchase.");
+		}
 	}
 
 	public void changeQuantity() {
@@ -101,7 +105,7 @@ public class PurchaseController implements SHPRCConstants {
 			view.displayPurchase(model.getPurchaseProducts(), model.getTotals());
 		}
 	}
-	
+
 	private void clearProducts() {
 		HashMap<Product, Integer> products = model.getPurchaseProducts();
 		ArrayList<Product> toDelete = new ArrayList<Product>();
@@ -112,13 +116,13 @@ public class PurchaseController implements SHPRCConstants {
 			model.removeProduct(p);
 		}
 	}
-	
+
 	public void switchToAdmin() {
 		if (view.confirmDecision("<html>Would you like to switch to Administrator View?<br>This will clear your current purchase.</html>") == JOptionPane.YES_OPTION) {
 			view.switchView(ADMIN_PANE);
 		}
 	}
-	
+
 	public void switchToPurchase() {
 		if (view.confirmDecision("Would you like to switch to Purchase View?") == JOptionPane.YES_OPTION) {
 			rDB.initRuntimeDatabase();
@@ -128,38 +132,51 @@ public class PurchaseController implements SHPRCConstants {
 			view.switchView(PURCHASE_PANE);
 		}
 	}
-	
+
 	public void adminDialog(String task) {
 		DialogController dialogController = new DialogController(rDB, view.getRootFrame(), task);
 	}
-	
+
 	public boolean cashTendered(String tendered, TotalDialog dialog) {
+
 		double centsTendered;
-		try {
-			centsTendered = Double.parseDouble(tendered);
-			centsTendered *= 100;
-			int changeDue = (int)centsTendered - model.tallyPurchaseTotal();
-			if (changeDue < 0 ) {
+		
+		if (tendered.equals("") && model.tallyPurchaseTotal() == 0) {
+			centsTendered = 0;
+		} else {
+			try {
+				centsTendered = Double.parseDouble(tendered);
+
+			} catch (NumberFormatException e) {
 				return false;
+
 			}
-			dialog.dispose();
-			dialog.showChangeMessage(CURRENCY_FORMAT.format(changeDue/100.0));
-		} catch (NumberFormatException e) {
-			return false;
-			
 		}
+
+		centsTendered *= 100;
+		int changeDue = (int)centsTendered - model.tallyPurchaseTotal();
+		if (changeDue < 0 ) {
+			return false;
+		}
+		dialog.dispose();
+		dialog.showChangeMessage(CURRENCY_FORMAT.format(changeDue/100.0));
 		return true;
 	}
-	
+
 	private void updateLastPurchases() {
 		lastThreePurchases[LEAST_RECENT] = lastThreePurchases[MIDDLE];
 		lastThreePurchases[MIDDLE] = lastThreePurchases[MOST_RECENT];
 		lastThreePurchases[MOST_RECENT] = model;
 	}
-	
-	public void commitPurchase() {
-		rDB.writePurchase(model);
 
+	public void commitPurchase() {
+		System.out.println("in PurchaseController: commitPurchase()");
+		if (rDB.writePurchase(model) ) {
+			updateLastPurchases();
+			model = new PurchaseModel(rDB);
+			view.displayPurchase(model.getPurchaseProducts(), model.getTotals());
+			view.resetClient();
+		}
 	}
 }
 

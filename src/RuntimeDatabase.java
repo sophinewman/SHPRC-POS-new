@@ -317,11 +317,9 @@ public class RuntimeDatabase implements SHPRCConstants{
 			}
 			if (productID > 0) {
 				productID++;
-				System.out.println("Category already exists " + productID);
 			} else {
 
 				productID = categoryID * 100;
-				System.out.println("New category " + productID);
 			}
 			pstmt = connection.prepareStatement("INSERT INTO Product VALUES (?, ?, ?, ?, 0, ?)") ;
 			pstmt.setInt(1, productID);
@@ -371,7 +369,7 @@ public class RuntimeDatabase implements SHPRCConstants{
 		try {
 			/* A PreparedStatement is used here to ensure that the SQL query is correctly formatted
 			 and to allow for more easily human-readable variable insertion. */
-			PreparedStatement pstmt = connection.prepareStatement("SELECT * from PurchasedProduct WHERE clientAffiliation = ?");
+			PreparedStatement pstmt = connection.prepareStatement("SELECT * from Client WHERE affiliationID = ?");
 			pstmt.setInt(1, affiliationID);
 			ResultSet rs = pstmt.executeQuery();
 			if (rs.next()) {
@@ -391,7 +389,7 @@ public class RuntimeDatabase implements SHPRCConstants{
 		}
 		return true;
 	}
-	
+
 	public boolean deleteCategory(int categoryID) {
 		try {
 			/* A PreparedStatement is used here to ensure that the SQL query is correctly formatted
@@ -438,7 +436,7 @@ public class RuntimeDatabase implements SHPRCConstants{
 		}
 		return true;
 	}
-	
+
 	public boolean validCategoryName (String name) {
 		try {
 			/* A PreparedStatement is used here to ensure that the SQL query is correctly formatted
@@ -517,7 +515,7 @@ public class RuntimeDatabase implements SHPRCConstants{
 		}
 		return true;
 	}
-	
+
 	public boolean addCategory (String name) {
 		int categoryID = 0;
 		try {
@@ -549,7 +547,7 @@ public class RuntimeDatabase implements SHPRCConstants{
 		}
 		return true;
 	}
-	
+
 	public boolean updateProduct (String name, int price, int cost, int categoryID, int productID) {
 		try {
 			/* A PreparedStatement is used here to ensure that the SQL query is correctly formatted
@@ -572,7 +570,7 @@ public class RuntimeDatabase implements SHPRCConstants{
 		}
 		return true;
 	}
-	
+
 	public boolean updateCategory (String name, int categoryID) {
 		try {
 			/* A PreparedStatement is used here to ensure that the SQL query is correctly formatted
@@ -593,11 +591,85 @@ public class RuntimeDatabase implements SHPRCConstants{
 		}
 		return true;
 	}
+
+	public boolean writePurchasedProducts (PurchaseModel purchase, int purchaseID) {
+		try {
+
+			PreparedStatement pstmt = connection.prepareStatement("INSERT INTO PurchasedProduct VALUES (?, ?, ?)");
+
+			HashMap<Product, Integer> productsPurchased = purchase.getPurchaseProducts();
+
+			Iterator it = productsPurchased.entrySet().iterator();
+			while (it.hasNext()) {
+				Map.Entry<Product, Integer> pair = (Entry<Product, Integer>) it.next();
+				Product product = pair.getKey();
+				int productID = product.getProductID();
+				int quantity = pair.getValue();
+				pstmt.setInt(1, purchaseID);
+				pstmt.setInt(2, productID);
+				pstmt.setInt(3, quantity);
+				
+				pstmt.executeUpdate();
+			}
+		} catch (SQLException e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
+		return true;
+	}
+
+	private boolean addClient (Client client, int[] totals) {
+		try {
+			int SUID = client.getSUID();
+			System.out.println("client.getCredit() returns "+client.getCredit());
+			System.out.println("totals[credit] returns" + totals[CREDIT]);
+			int credit = client.getCredit() - totals[CREDIT];
+			int affiliationID = client.getAffiliation();
+			boolean testUsed = totals[PT_SUBSIDY] != 0;
+			
+			
+			PreparedStatement pstmt = connection.prepareStatement("INSERT INTO Client VALUES(?, ?, ?, ?)");
+			pstmt.setInt(1, SUID);
+			pstmt.setInt(2, credit);
+			pstmt.setBoolean(3, testUsed);
+			pstmt.setInt(4, affiliationID);
+			
+			pstmt.executeUpdate();
+			
+		} catch (SQLException e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
+
+		return true;
+	}
 	
+	private boolean updateClient (Client client, int[] totals) {
+		try {
+			int SUID = client.getSUID();
+			int credit = client.getCredit() - totals[CREDIT];
+			boolean testUsed = totals[PT_SUBSIDY] != 0; //stays at zero if unused
+			
+			PreparedStatement pstmt = connection.prepareStatement("UPDATE Client SET creditAvailable = ?, pregnancyTestUsed = ? WHERE SUID = ?");
+			pstmt.setInt(1, credit);
+			pstmt.setBoolean(2, testUsed);
+			pstmt.setInt(3, SUID);
+			
+			pstmt.executeUpdate();
+			
+		} catch (SQLException e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
+
+		return true;
+	}
+
+
 	public boolean writePurchase (PurchaseModel purchase) {
-		
+
 		int purchaseID = 0;
-		
+
 		try {
 			/* A PreparedStatement is used here to ensure that the SQL query is correctly formatted
 			 and to allow for more easily human-readable variable insertion. */
@@ -614,45 +686,44 @@ public class RuntimeDatabase implements SHPRCConstants{
 				purchaseID = MINIMUM_PURCHASE_ID;
 			}
 			
+			System.out.println("purchaseID is : "+purchaseID);
+
 			int[] totals = purchase.getTotals();
 			Client client = purchase.getCurrentClient();
 			
-			int credit = -1 * totals[CREDIT];
+			if (purchase.isNewClient()) {
+				if (!addClient(client, totals)) {
+					return false;
+				}
+			} else if (!updateClient(client, totals)) {
+				return false;
+			}
+
+			int creditUsed = -1 * totals[CREDIT] + -1 * totals[PT_SUBSIDY];
 			int total = totals[TOTAL];
 			Date date= new Date();
 			Timestamp timestamp = new Timestamp(date.getTime());
 			int affiliationID = client.getAffiliation();
-			
-			pstmt = connection.prepareStatement("INSERT INTO Purchase VALUES (?, ?, ?, ?, ?)");
+
+			pstmt =  connection.prepareStatement("INSERT INTO Purchase VALUES (?, ?, ?, ?, ?)");
 			pstmt.setInt(1, purchaseID);
 			pstmt.setString(2, timestamp.toString());
 			pstmt.setInt(3, total);
-			pstmt.setInt(4, credit);
+			pstmt.setInt(4, creditUsed);
 			pstmt.setInt(5, affiliationID);
 			
-			HashMap<Product, Integer> productsPurchased = purchase.getPurchaseProducts();
-			
-			Iterator it = productsPurchased.entrySet().iterator();
-			while (it.hasNext()) {
-				Map.Entry<Product, Integer> pair = (Entry<Product, Integer>) it.next();
-				Product product = pair.getKey();
-				int productID = product.getProductID();
-				int quantity = pair.getValue();
-				pstmt = connection.prepareStatement("INSERT INTO PurchasedProduct VALUES (?, ?, ?)");
-				pstmt.setInt(1, purchaseID);
-				pstmt.setInt(2, productID);
-				pstmt.setInt(3, quantity);
+			pstmt.executeUpdate();
+
+
+			if (!writePurchasedProducts(purchase, purchaseID)) {
+				return false;
 			}
-			
-//TODO needs to update Client where appropriate and insert new where appropriate.			
-			pstmt = connection.prepareStatement("INSERT INTO Client VALUES(?, ?, ?, ?)");
-			pstmt.setInt(1, client.getSUID());
-			
+
 			connection.commit();
 			connection.setAutoCommit(true);
 		}
 		catch (SQLException e) {
-			System.err.println(e.getMessage());
+			System.err.println("In writePurchase" + e.getMessage());
 			return false;
 		}
 		catch (NullPointerException e) {

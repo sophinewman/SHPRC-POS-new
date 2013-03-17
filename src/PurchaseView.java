@@ -140,7 +140,6 @@ public class PurchaseView implements ActionListener, SHPRCConstants {
 		
 		purchasePane.setVisible(true);
 		
-//		purchasePane.validate();
 	}
 
 	private void drawLeftPurchaseButtons() {
@@ -427,6 +426,11 @@ public class PurchaseView implements ActionListener, SHPRCConstants {
 	
 	public void closeWindow() {
 		frame.dispose();
+	}
+	
+	public void resetClient() {
+		textField.setText("");
+		affiliationComboBox.setSelectedIndex(0);
 	}
 	
 

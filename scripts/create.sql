@@ -24,8 +24,7 @@ create table Purchase (
 	time TEXT,
 	total INT,
 	creditUsed INT,
-	clientAffiliation INT REFERENCES Affiliation,
-	CHECK (creditUsed <= total)
+	clientAffiliation INT REFERENCES Affiliation
 );
 
 create table PurchasedProduct (

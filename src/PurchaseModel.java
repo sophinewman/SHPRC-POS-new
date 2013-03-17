@@ -24,6 +24,8 @@ public class PurchaseModel implements SHPRCConstants {
 
 	/* products stores the products and their quantities in a given purchase */
 	private HashMap<Product, Integer> products; 
+	
+	private boolean newClient = true;
 
 	/* allows for lookup of global/backend data */
 	private RuntimeDatabase rDB;
@@ -37,6 +39,10 @@ public class PurchaseModel implements SHPRCConstants {
 		this.rDB = rDB;
 		products = new HashMap<Product, Integer>();
 
+	}
+	
+	public boolean isNewClient() {
+		return newClient;
 	}
 
 	public Client getCurrentClient() {
@@ -62,16 +68,20 @@ public class PurchaseModel implements SHPRCConstants {
 		currentClient = rDB.lookupClient(suid);
 		Affiliation affiliation = rDB.getAffiliation(affiliationID);
 		if (currentClient == null) {
+			newClient = true;
 			int creditAvailable = affiliation.getCredit();
 			boolean qualifiesForPregnancyTest = affiliation.qualifiesForPregnancyTest();
 			currentClient = 
 				new Client(suid, affiliationID, creditAvailable, false, qualifiesForPregnancyTest);
+		} else {
+			newClient = false;
 		}
 	}
 
-	public void setCurrentClient(Object obj) {
-		currentClient = null;
-	}
+//	//version used for setting the client to null.
+//	public void setCurrentClient(Object obj) {
+//		currentClient = null;
+//	}
 
 	/**
 	 * Adds a product in the specified quantity to the purchase and updates the total.
@@ -150,7 +160,7 @@ public class PurchaseModel implements SHPRCConstants {
 	 * is set to the available credit. If no client has been set, the method returns 0.
 	 * @return the credit to be applied to the purchase.
 	 */
-	public int calculateCredit() {
+	private int calculateCredit() {
 		if (currentClient == null) {
 			return 0;
 		}

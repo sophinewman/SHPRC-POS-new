@@ -76,6 +76,7 @@ public class TotalDialog extends JDialog implements ActionListener {
 		controlButtonPane.removeAll();
 		verticalBox.setVisible(false);
 		continueButton = new HelveticaJButton("Continue", 14);
+		continueButton.addActionListener(this);
 		controlButtonPane.add(continueButton);
 		HelveticaJLabel label = new HelveticaJLabel("<html>Change due: <u>" + change + "</u></html>", 16);
 		label.setAlignmentX(Component.CENTER_ALIGNMENT);
