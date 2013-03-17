@@ -41,19 +41,19 @@ public class RuntimeDatabase {
 		Class.forName("org.sqlite.JDBC");
 
 	}
-	
+
 	public HashMap<Integer, Product> getProductMap() {
 		return productMap;
 	}
-	
+
 	public ArrayList<Product> getProductList() {
 		return productList;
 	}
-	
+
 	public ArrayList<Category> getCategoryList() {
 		return categoryList;
 	}
-	
+
 	public Category getCategory(int categoryID) {
 		Category category = null;
 		for (Category c : categoryList ) {
@@ -123,7 +123,7 @@ public class RuntimeDatabase {
 			// Return all rows in the Product relation
 			ResultSet rs = stmt.executeQuery(("SELECT productID, productName, price, cost, isPregnancyTest, " +
 					"Product.categoryID, categoryName FROM Product, Category " +
-					"WHERE Product.categoryID = Category.categoryID ORDER BY productID"));
+			"WHERE Product.categoryID = Category.categoryID ORDER BY productID"));
 			// Read in the information about each row and store in Product object
 			// Store the flagged pregnancy test product in an instance variable
 			while (rs.next()) {
@@ -153,7 +153,7 @@ public class RuntimeDatabase {
 		// Ensures that the pregnancyTest and productMap objects have been initialized
 		return (pregnancyTest != null && productMap != null);
 	}
-	
+
 	private boolean initializeCategoryList() {
 		categoryList = new ArrayList<Category>();
 		try {
@@ -165,7 +165,7 @@ public class RuntimeDatabase {
 				Category category = new Category(categoryID, categoryName);
 				categoryList.add(category);
 			}
-			
+
 		} catch (SQLException e) {
 			System.err.println(e.getMessage());
 			return false;
@@ -204,7 +204,7 @@ public class RuntimeDatabase {
 		return (affiliationMap != null && affiliations != null);
 
 	}
-	
+
 	public ArrayList<Affiliation> getAffiliations() {
 		return affiliations;
 	}
@@ -258,7 +258,7 @@ public class RuntimeDatabase {
 		return null;
 	}
 
-	
+
 	/**
 	 * Returns the product that the administrator has specified to be the pregnancy test.
 	 * @return the pregnancy test Product object
@@ -267,7 +267,7 @@ public class RuntimeDatabase {
 		return pregnancyTest;
 	}
 
-	
+
 	/**
 	 * Returns the product associated with the specified productID.
 	 * @param productID the unique integer product ID to be looked up
@@ -276,7 +276,7 @@ public class RuntimeDatabase {
 	public Product getProduct (int productID) {
 		return productMap.get(productID);
 	}
-	
+
 	public boolean validProductName (String name) {
 		try {
 			/* A PreparedStatement is used here to ensure that the SQL query is correctly formatted
@@ -298,19 +298,25 @@ public class RuntimeDatabase {
 		}
 		return true;
 	}
-	
+
 	public boolean addProduct(String name, int price, int cost, int categoryID) {
-		int productID;
+		int productID = 0;
 		try {
 			/* A PreparedStatement is used here to ensure that the SQL query is correctly formatted
 			 and to allow for more easily human-readable variable insertion. */
-			PreparedStatement pstmt = connection.prepareStatement("SELECT MAX(productID) from Product where categoryID = ?");
+			PreparedStatement pstmt = connection.prepareStatement("SELECT MAX(productID) AS maxID FROM Product where categoryID = ?");
 			pstmt.setInt(1, categoryID);
 			ResultSet rs = pstmt.executeQuery();
 			if (rs.next()) {
-				productID = rs.getInt(1) + 1;
+				productID = rs.getInt("maxID");
+			}
+			if (productID > 0) {
+				productID++;
+				System.out.println("Category already exists " + productID);
 			} else {
+
 				productID = categoryID * 100;
+				System.out.println("New category " + productID);
 			}
 			pstmt = connection.prepareStatement("INSERT INTO Product VALUES (?, ?, ?, ?, 0, ?)") ;
 			pstmt.setInt(1, productID);
@@ -330,21 +336,257 @@ public class RuntimeDatabase {
 		}
 		return true;
 	}
-	
-	public void deleteProductByName(String name ) {
+
+	public boolean deleteProduct(int productID) {
 		try {
 			/* A PreparedStatement is used here to ensure that the SQL query is correctly formatted
 			 and to allow for more easily human-readable variable insertion. */
-			PreparedStatement pstmt = connection.prepareStatement("DELETE from Product where productName = ?");
-			pstmt.setString(1, name);
+			PreparedStatement pstmt = connection.prepareStatement("SELECT * FROM PurchasedProduct WHERE productID = ?");
+			pstmt.setInt(1, productID);
+			ResultSet rs = pstmt.executeQuery();
+			if (rs.next()) {
+				return false;
+			}
+			pstmt = connection.prepareStatement("DELETE FROM Product WHERE productID = ?");
+			pstmt.setInt(1, productID);
 			pstmt.executeUpdate();
 		}
 		catch (SQLException e) {
 			System.err.println(e.getMessage());
+			return false;
 		}
 		catch (NullPointerException e) {
 			System.err.println(e.getMessage());
+			return false;
 		}
+		return true;
+	}
+
+	public boolean deleteAffiliation(int affiliationID) {
+		try {
+			/* A PreparedStatement is used here to ensure that the SQL query is correctly formatted
+			 and to allow for more easily human-readable variable insertion. */
+			PreparedStatement pstmt = connection.prepareStatement("SELECT * from PurchasedProduct WHERE clientAffiliation = ?");
+			pstmt.setInt(1, affiliationID);
+			ResultSet rs = pstmt.executeQuery();
+			if (rs.next()) {
+				return false;
+			}
+			pstmt = connection.prepareStatement("DELETE FROM Affiliation WHERE affiliationID = ?");
+			pstmt.setInt(1, affiliationID);
+			pstmt.executeUpdate();
+		}
+		catch (SQLException e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
+		catch (NullPointerException e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
+		return true;
 	}
 	
+	public boolean deleteCategory(int categoryID) {
+		try {
+			/* A PreparedStatement is used here to ensure that the SQL query is correctly formatted
+			 and to allow for more easily human-readable variable insertion. */
+			PreparedStatement pstmt = connection.prepareStatement("SELECT * from Product WHERE categoryID = ?");
+			pstmt.setInt(1, categoryID);
+			ResultSet rs = pstmt.executeQuery();
+			if (rs.next()) {
+				return false;
+			}
+			pstmt = connection.prepareStatement("DELETE FROM Category WHERE categoryID = ?");
+			pstmt.setInt(1, categoryID);
+			pstmt.executeUpdate();
+		}
+		catch (SQLException e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
+		catch (NullPointerException e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
+		return true;
+	}
+
+	public boolean validAffiliationName (String name) {
+		try {
+			/* A PreparedStatement is used here to ensure that the SQL query is correctly formatted
+			 and to allow for more easily human-readable variable insertion. */
+			PreparedStatement pstmt = connection.prepareStatement("SELECT * FROM Affiliation WHERE affiliationName = ?");
+			pstmt.setString(1, name);
+			ResultSet rs = pstmt.executeQuery();
+			if (rs.next()) {
+				return false;
+			}
+		}
+		catch (SQLException e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
+		catch (NullPointerException e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
+		return true;
+	}
+	
+	public boolean validCategoryName (String name) {
+		try {
+			/* A PreparedStatement is used here to ensure that the SQL query is correctly formatted
+			 and to allow for more easily human-readable variable insertion. */
+			PreparedStatement pstmt = connection.prepareStatement("SELECT * FROM Category WHERE categoryName = ?");
+			pstmt.setString(1, name);
+			ResultSet rs = pstmt.executeQuery();
+			if (rs.next()) {
+				return false;
+			}
+		}
+		catch (SQLException e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
+		catch (NullPointerException e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
+		return true;
+	}
+
+	public boolean addAffiliation (String name, int credit, boolean subsidyOn) {
+		int affiliationID = 0;
+		try {
+			/* A PreparedStatement is used here to ensure that the SQL query is correctly formatted
+			 and to allow for more easily human-readable variable insertion. */
+
+			Statement stmt = connection.createStatement();
+			ResultSet rs = stmt.executeQuery("SELECT MAX(affiliationID) as maxID from Affiliation");
+			if (rs.next()) {
+				affiliationID = rs.getInt("maxID");
+			}
+			if (affiliationID > 0) {
+				affiliationID++;
+			} else {
+				affiliationID = 1000;
+			}
+			PreparedStatement pstmt = connection.prepareStatement("INSERT INTO Affiliation VALUES (?, ?, ?, ?)") ;
+			pstmt.setInt(1, affiliationID);
+			pstmt.setString(2, name);
+			pstmt.setInt(3, credit * -1);
+			pstmt.setBoolean(4, subsidyOn);
+			pstmt.executeUpdate();
+		}
+		catch (SQLException e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
+		catch (NullPointerException e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
+		return true;
+	}
+
+	public boolean updateAffiliation (String name, int credit, boolean subsidyOn, int affiliationID) {
+		try {
+			/* A PreparedStatement is used here to ensure that the SQL query is correctly formatted
+			 and to allow for more easily human-readable variable insertion. */
+
+			PreparedStatement pstmt = connection.prepareStatement("UPDATE Affiliation set affiliationName = ?, affiliationCredit = ?, qualifiesForSubsidy = ? where affiliationID = ?") ;
+			pstmt.setString(1, name);
+			pstmt.setInt(2, credit * -1);
+			pstmt.setBoolean(3, subsidyOn);
+			pstmt.setInt(4, affiliationID);
+			pstmt.executeUpdate();
+		}
+		catch (SQLException e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
+		catch (NullPointerException e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
+		return true;
+	}
+	
+	public boolean addCategory (String name) {
+		int categoryID = 0;
+		try {
+			/* A PreparedStatement is used here to ensure that the SQL query is correctly formatted
+			 and to allow for more easily human-readable variable insertion. */
+
+			Statement stmt = connection.createStatement();
+			ResultSet rs = stmt.executeQuery("SELECT MAX(categoryID) as maxID from Category");
+			if (rs.next()) {
+				categoryID = rs.getInt("maxID");
+			}
+			if (categoryID > 0) {
+				categoryID++;
+			} else {
+				categoryID = 1;
+			}
+			PreparedStatement pstmt = connection.prepareStatement("INSERT INTO Category VALUES (?, ?)") ;
+			pstmt.setInt(1, categoryID);
+			pstmt.setString(2, name);
+			pstmt.executeUpdate();
+		}
+		catch (SQLException e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
+		catch (NullPointerException e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
+		return true;
+	}
+	
+	public boolean updateProduct (String name, int price, int cost, int categoryID, int productID) {
+		try {
+			/* A PreparedStatement is used here to ensure that the SQL query is correctly formatted
+			 and to allow for more easily human-readable variable insertion. */
+
+			PreparedStatement pstmt = connection.prepareStatement("UPDATE Product SET productName = ?, price = ?, cost = ? WHERE productID = ?") ;
+			pstmt.setString(1, name);
+			pstmt.setInt(2, price);
+			pstmt.setInt(3, cost);
+			pstmt.setInt(4, productID);
+			pstmt.executeUpdate();
+		}
+		catch (SQLException e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
+		catch (NullPointerException e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
+		return true;
+	}
+	
+	public boolean updateCategory (String name, int categoryID) {
+		try {
+			/* A PreparedStatement is used here to ensure that the SQL query is correctly formatted
+			 and to allow for more easily human-readable variable insertion. */
+
+			PreparedStatement pstmt = connection.prepareStatement("UPDATE Category SET categoryName = ? WHERE categoryID = ?") ;
+			pstmt.setString(1, name);
+			pstmt.setInt(2, categoryID);
+			pstmt.executeUpdate();
+		}
+		catch (SQLException e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
+		catch (NullPointerException e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
+		return true;
+	}
 }
+

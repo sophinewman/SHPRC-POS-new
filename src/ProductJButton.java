@@ -17,10 +17,10 @@ public class ProductJButton extends JButton implements SHPRCConstants {
 	}
 	
 	private Color getColor(String str) {
-		if (productID/100 >= COLORS.length) {
-			return LIGHT_GREY;
-		}
-		return COLORS[productID/100 - 1];
+//		if (productID/100 >= COLORS.length) {
+//			return LIGHT_GREY;
+//		}
+		return COLORS[(productID/100) % COLORS.length];
 	}
 	
 	public int getProductID() {

@@ -18,20 +18,15 @@ public class AffiliationDialog extends JDialog implements ActionListener {
 	private boolean updateMode = false;
 
 	
-	/*
-	 * 	private int affiliationID;
-	private String affiliationName;
-	private int credit;
-	private boolean qualifiesForPregnancyTest;
-	 */
-	public AffiliationDialog (DialogController controller, JDialog parent, String title, Boolean updateMode) {
+
+	public AffiliationDialog (DialogController controller, JDialog parent, String title, boolean updateMode) {
 		super(parent, title);
 
 		this.controller = controller;
 		
 		this.updateMode = updateMode;
 
-		this.setLayout(new BorderLayout(5,5));
+		getContentPane().setLayout(new BorderLayout(5,5));
 
 		drawNamePane();
 		drawCreditAndSubsidyPane();
@@ -42,20 +37,22 @@ public class AffiliationDialog extends JDialog implements ActionListener {
 		
 	}
 	
-	public void populateFields(String name, int price, int cost, Category category) {
-		if (updateMode) {
+	public void populateFields(String name, int credit, boolean testSubsidized) {
 			nameField.setText(name);
+			String creditString = Integer.toString(credit);
+			setMoneyFields(creditDollars, creditCents, creditString);
+			JRadioButton button = testSubsidized ? subsidyOn : subsidyOff;
+			button.setSelected(true);
 
-		}
 	}
 	
 	private void drawNamePane() {
 		JPanel productNamePane = new JPanel();
-		this.add(productNamePane, BorderLayout.NORTH);
+		getContentPane().add(productNamePane, BorderLayout.NORTH);
 
 		productNamePane.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
 
-		JLabel nameLabel = new JLabel("Affiliation Name: ");
+		JLabel nameLabel = new JLabel("<html><u>Affiliation Name:</u></html> ");
 		productNamePane.add(nameLabel);
 
 		nameField = new JTextField(12);
@@ -64,7 +61,7 @@ public class AffiliationDialog extends JDialog implements ActionListener {
 
 	private void drawControlButtonPane() {
 		JPanel controlButtonPane = new JPanel();
-		this.add(controlButtonPane, BorderLayout.SOUTH);
+		getContentPane().add(controlButtonPane, BorderLayout.SOUTH);
 		controlButtonPane.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
 
 
@@ -81,26 +78,34 @@ public class AffiliationDialog extends JDialog implements ActionListener {
 
 	private void drawCreditAndSubsidyPane() {
 		JPanel creditAndSubsidyPane = new JPanel();
-		this.add(creditAndSubsidyPane, BorderLayout.CENTER);
+		getContentPane().add(creditAndSubsidyPane, BorderLayout.CENTER);
 		creditAndSubsidyPane.setLayout(new FlowLayout(FlowLayout.CENTER, 2, 5));
-
-		creditAndSubsidyPane.add(new JLabel(" "));
-		JLabel lblCategory = new JLabel("Category:");
-		creditAndSubsidyPane.add(lblCategory);
 		
-
-		JLabel lblPrice = new JLabel("Price: $");
+		creditAndSubsidyPane.add(new JLabel("  "));
+		JLabel lblPrice = new JLabel("<html><u>Credit:</u></html> $");
 		creditAndSubsidyPane.add(lblPrice);
 
 		creditDollars = new JTextField("00", 2);
+		creditDollars.setHorizontalAlignment(SwingConstants.RIGHT);
 		creditAndSubsidyPane.add(creditDollars);
-
-		JLabel label = new JLabel(".");
-		creditAndSubsidyPane.add(label);
-
+		creditAndSubsidyPane.add(new JLabel("."));
 		creditCents = new JTextField("00", 2);
 		creditAndSubsidyPane.add(creditCents);
-
+		
+		ButtonGroup group = new ButtonGroup();
+		subsidyOn = new JRadioButton();
+		subsidyOff = new JRadioButton();
+		subsidyOff.setSelected(true);
+		group.add(subsidyOn);
+		group.add(subsidyOff);
+		
+		creditAndSubsidyPane.add(new JLabel("  "));
+		creditAndSubsidyPane.add(new JLabel("<html><u>Pregnancy Test Subsidy:</u></html>"));
+		creditAndSubsidyPane.add(new JLabel(" On:"));
+		creditAndSubsidyPane.add(subsidyOn);
+		creditAndSubsidyPane.add(new JLabel(" Off:"));
+		creditAndSubsidyPane.add(subsidyOff);
+		creditAndSubsidyPane.add(new JLabel("  "));
 		
 	}
 	
@@ -132,6 +137,11 @@ public class AffiliationDialog extends JDialog implements ActionListener {
 
 		Object src = event.getSource();
 		if (src == saveButton) {
+			if (!updateMode) {
+				controller.createNewAffiliation(nameField.getText(), creditDollars.getText(), creditCents.getText(), subsidyOn.isSelected());
+			} else {
+				controller.updateAffiliation(nameField.getText(), creditDollars.getText(), creditCents.getText(), subsidyOn.isSelected());
+			}
 			
 		} else if (src == cancelButton) {
 			close();
@@ -139,6 +149,8 @@ public class AffiliationDialog extends JDialog implements ActionListener {
 
 	}
 
+
+	
 	public void close() {
 		this.dispose();
 	}

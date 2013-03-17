@@ -37,7 +37,6 @@ public class ProductDialog extends JDialog implements ActionListener {
 	}
 	
 	public void populateFields(String name, int price, int cost, Category category) {
-		if (updateMode) {
 			nameField.setText(name);
 			categoriesBox.setSelectedItem(category);
 			String priceString = Integer.toString(price);
@@ -45,7 +44,6 @@ public class ProductDialog extends JDialog implements ActionListener {
 			String costString = Integer.toString(cost);
 			setMoneyFields(costDollars, costCents, costString);
 
-		}
 	}
 	
 	private void setMoneyFields (JTextField dollarsField, JTextField centsField, String moneyString) {
@@ -148,8 +146,13 @@ public class ProductDialog extends JDialog implements ActionListener {
 
 		Object src = event.getSource();
 		if (src == saveButton) {
+			if (!updateMode) {
 			controller.createNewProduct(nameField.getText(), priceDollars.getText(), priceCents.getText(), 
-					costDollars.getText(), costCents.getText(), (Category)categoriesBox.getSelectedItem(), updateMode);
+					costDollars.getText(), costCents.getText(), (Category)categoriesBox.getSelectedItem());
+			} else {
+				controller.updateProduct(nameField.getText(), priceDollars.getText(), priceCents.getText(),
+						costDollars.getText(), costCents.getText(), (Category)categoriesBox.getSelectedItem());
+			}
 		} else if (src == cancelButton) {
 			close();
 		}
