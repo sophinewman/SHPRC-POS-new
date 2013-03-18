@@ -4,11 +4,11 @@ import java.util.HashMap;
 /**
  * SHPRC-POS
  * Purchase.java
- * Stores information about a purchase, calculating totals based on the specified products
- * and the current client. Purchase is the Model in the MVC framework.
+ * Serves the model in the MVC framework and stores information about a purchase,
+ * calculating totals based on the specified products and the current client.  
  * 
  * @author Sophi Newman
- * @version 0.1 2/4/13
+ * @version 1.0 03/17/2013
  */
 
 
@@ -16,19 +16,20 @@ public class PurchaseModel implements SHPRCConstants {
 
 
 
-	/* total stores the subtotal, credit used, preg. test subsidy, and total of an order */
-	private int[] totals = {0,0,0,0};
+	/* The runtime database access point */
+	private RuntimeDatabase rDB;
 
-	/* currentClient stores information about the purchaser*/
+	/* The products and their quantities in a given purchase */
+	private HashMap<Product, Integer> products;
+
+	/* The current client whose purchase is being tallied */
 	private Client currentClient;
 
-	/* products stores the products and their quantities in a given purchase */
-	private HashMap<Product, Integer> products; 
-	
-	private boolean newClient = true;
+	/* The subtotal, credit used, preg. test subsidy, and total of an order */
+	private int[] totals = {0,0,0,0};
 
-	/* allows for lookup of global/backend data */
-	private RuntimeDatabase rDB;
+	/* Whether the current client has already visited this quarter */
+	private boolean newClient = true;
 
 
 	/**
@@ -41,48 +42,6 @@ public class PurchaseModel implements SHPRCConstants {
 
 	}
 	
-	public boolean isNewClient() {
-		return newClient;
-	}
-
-	public Client getCurrentClient() {
-		return currentClient;
-	}
-
-
-	public HashMap<Product, Integer> getPurchaseProducts() {
-		return products;
-	}
-
-	/**
-	 * Sets the current client based on the specified SUID and affiliation. Takes a 
-	 * Stanford University IDentification (7-digit number, e.g., 5555555) and
-	 * an affiliation identification number (e.g., "frosh," "grad," "other") and uses
-	 * these parameters to look up the client in the client database. If the client is
-	 * found, a Client object is created. If not, a new Client object is made.
-	 * @param currentSUID the SUID to set
-	 * @param affiliationID the class or community affiliation the client belongs to
-	 * TODO allow for those with certain combinations to opt out of SUID
-	 */
-	public void setCurrentClient(int suid, int affiliationID) {
-		currentClient = rDB.lookupClient(suid);
-		Affiliation affiliation = rDB.getAffiliation(affiliationID);
-		if (currentClient == null) {
-			newClient = true;
-			int creditAvailable = affiliation.getCredit();
-			boolean qualifiesForPregnancyTest = affiliation.qualifiesForPregnancyTest();
-			currentClient = 
-				new Client(suid, affiliationID, creditAvailable, false, qualifiesForPregnancyTest);
-		} else {
-			newClient = false;
-		}
-	}
-
-//	//version used for setting the client to null.
-//	public void setCurrentClient(Object obj) {
-//		currentClient = null;
-//	}
-
 	/**
 	 * Adds a product in the specified quantity to the purchase and updates the total.
 	 *  @param product the product to be added to a purchase
@@ -101,7 +60,6 @@ public class PurchaseModel implements SHPRCConstants {
 		}
 	}
 
-
 	/**
 	 * Removes an product from the purchase's products, calculating and subtracting its
 	 * cost contribution from the subtotal.
@@ -112,6 +70,50 @@ public class PurchaseModel implements SHPRCConstants {
 		products.remove(product);
 	}
 
+	/**
+	 * Returns the HashMap of products and their quantities in the purchase.
+	 * @return the HashMap of products and their quantities in the purchase
+	 */
+	public HashMap<Product, Integer> getPurchaseProducts() {
+		return products;
+	}
+
+	public Client getCurrentClient() {
+		return currentClient;
+	}
+
+
+	/**
+	 * Sets the current client based on the specified SUID and affiliation. Takes a 
+	 * Stanford University IDentification (7-digit number, e.g., 5555555) and
+	 * an affiliation identification number (e.g., "frosh," "grad," "other") and uses
+	 * these parameters to look up the client in the client database. If the client is
+	 * found, a Client object is created. If not, a new Client object is made.
+	 * @param currentSUID the SUID to set
+	 * @param affiliationID the class or community affiliation the client belongs to
+	 * TODO allow for those with certain combinations to opt out of SUID
+	 */
+	public void setCurrentClient(int suid, int affiliationID) {
+		currentClient = rDB.lookupClient(suid);
+		Affiliation affiliation = rDB.getAffiliationCredit(affiliationID);
+		if (currentClient == null) {
+			newClient = true;
+			int creditAvailable = affiliation.getCredit();
+			boolean qualifiesForPregnancyTest = affiliation.qualifiesForPregnancyTest();
+			currentClient = 
+				new Client(suid, affiliationID, creditAvailable, false, qualifiesForPregnancyTest);
+		} else {
+			newClient = false;
+		}
+	}
+
+	/**
+	 * Returns whether the client has already made a purchase this quarter.
+	 * @return whether the client has already made a purchase this quarter
+	 */
+	public boolean isNewClient() {
+		return newClient;
+	}
 
 	/**
 	 * Returns the total cost of a purchase after credit and subsidy.
@@ -124,13 +126,19 @@ public class PurchaseModel implements SHPRCConstants {
 	 * @return the total cost of a purchase after credit and subsidy
 	 */
 	public int tallyPurchaseTotal() {
-		totals[CREDIT] = calculateCredit();
 		totals[PT_SUBSIDY] = applyPregnancyTestSubsidy();
+		totals[CREDIT] = calculateCredit();
 		int total = totals[SUBTOTAL] + totals[CREDIT] + totals[PT_SUBSIDY];
 		totals[TOTAL] = total;
 		return total;
 	}
 	
+	/**
+	 * Returns the subtotal, credit applied, pregnancy test subsidy used, and total 
+	 * of a purchase.
+	 * @return the subtotal, credit applied, pregnancy test subsidy used, and total
+	 * of a purchase
+	 */
 	public int[] getTotals() {
 		tallyPurchaseTotal();
 		return totals;
@@ -165,8 +173,10 @@ public class PurchaseModel implements SHPRCConstants {
 			return 0;
 		}
 		int availableCredit = currentClient.getCredit();
-		if (totals[SUBTOTAL] < -1 * availableCredit) {
-			return -1 * totals[SUBTOTAL];
+		int subtotal = totals[SUBTOTAL];
+		subtotal += totals[PT_SUBSIDY];
+		if (subtotal < -1 * availableCredit) {
+			return -1 * subtotal;
 		}
 		return availableCredit;
 	}

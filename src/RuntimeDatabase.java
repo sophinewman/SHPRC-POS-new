@@ -23,7 +23,7 @@ import java.util.Map.Entry;
  * querying the back end.
  * 
  * @author Sophi Newman
- * @version 0.1 2/8/13
+ * @version 0.1 03/17/2013
  */
 public class RuntimeDatabase implements SHPRCConstants{
 
@@ -31,11 +31,16 @@ public class RuntimeDatabase implements SHPRCConstants{
 	private Connection connection;
 
 	private ArrayList<Affiliation> affiliations;
+	
 	private HashMap<Integer, Affiliation> affiliationMap;
-	private HashMap<Integer, Product> productMap;
-	private ArrayList<Product> productList;
+
 	private ArrayList<Category> categoryList;
+
 	private Product pregnancyTest;
+
+	private ArrayList<Product> productList;
+
+
 
 	/**
 	 * Class constructor. Does not actually read in data and store it;
@@ -47,27 +52,6 @@ public class RuntimeDatabase implements SHPRCConstants{
 
 	}
 
-	public HashMap<Integer, Product> getProductMap() {
-		return productMap;
-	}
-
-	public ArrayList<Product> getProductList() {
-		return productList;
-	}
-
-	public ArrayList<Category> getCategoryList() {
-		return categoryList;
-	}
-
-	public Category getCategory(int categoryID) {
-		Category category = null;
-		for (Category c : categoryList ) {
-			if (c.getCategoryID() == categoryID) {
-				category = c;
-			}
-		} 
-		return category;
-	}
 
 	/**
 	 * Initializes the JDBC connection to the database and loads up the
@@ -92,7 +76,6 @@ public class RuntimeDatabase implements SHPRCConstants{
 			}
 		}
 		catch (SQLException e) {
-			System.err.println(e.getMessage());
 			return false;
 		}
 		return true;
@@ -104,14 +87,84 @@ public class RuntimeDatabase implements SHPRCConstants{
 	 * @throws SQLException
 	 */
 	public void closeDatabase() throws SQLException {
-		try {
-			if (connection != null)
-				connection.close();
-		}
-		catch(SQLException e) {
-			System.err.println(e);
-		}
+		if (connection != null)
+			connection.close();
 	}
+
+
+	/**
+	 * Returns all affiliations.
+	 * @return all affiliations
+	 */
+	public ArrayList<Affiliation> getAffiliations() {
+		return affiliations;
+	}
+
+
+	/**
+	 * Returns all categories.
+	 * @return all categories
+	 */
+	public ArrayList<Category> getCategoryList() {
+		return categoryList;
+	}
+
+
+	/**
+	 * Returns the product that the administrator has specified to be the pregnancy test.
+	 * @return the pregnancy test Product object
+	 */
+	public Product getPregnancyTestProduct() {
+		return pregnancyTest;
+	}
+
+
+	/**
+	 * Returns all products.
+	 * @return all products
+	 */
+	public ArrayList<Product> getProductList() {
+		return productList;
+	}
+
+
+	/**
+	 * Returns the credit a given affiliation has as a negative integer of cents.
+	 * @param affiliationID the integer community/class affiliation ID to be looked up.
+	 * @return the amount of credit a given affiliation receives
+	 */
+	public Affiliation getAffiliationCredit(int affiliationID) {
+		if (affiliationMap.containsKey(affiliationID)) {
+			return affiliationMap.get(affiliationID);
+		}
+		return null;
+	}
+
+	
+	/**
+	 * Returns the category associated with the given categoryID.
+	 * @param categoryID
+	 * @return the category associated with the given categoryID
+	 */
+	public Category getCategory(int categoryID) {
+		Category category = null;
+		for (Category c : categoryList ) {
+			if (c.getCategoryID() == categoryID) {
+				category = c;
+			}
+		} 
+		return category;
+	}
+
+
+//	/**
+//	 * Returns the product associated with the specified productID.
+//	 * @param productID the unique integer product ID to be looked up
+//	 * @return the product associated with the specified productID
+//	 */
+//	public Product getProduct (int productID) {
+//		return productMap.get(productID);
+//	}
 
 
 	/**
@@ -121,14 +174,13 @@ public class RuntimeDatabase implements SHPRCConstants{
 	 * @return successfully initialized
 	 */
 	private boolean initializeProductMap() {
-		productMap = new HashMap<Integer, Product>();
 		productList = new ArrayList<Product>();
 		try {
 			Statement stmt = connection.createStatement();
 			// Return all rows in the Product relation
 			ResultSet rs = stmt.executeQuery(("SELECT productID, productName, price, cost, isPregnancyTest, " +
 					"Product.categoryID, categoryName FROM Product, Category " +
-			"WHERE Product.categoryID = Category.categoryID ORDER BY productID"));
+					"WHERE Product.categoryID = Category.categoryID ORDER BY productID"));
 			// Read in the information about each row and store in Product object
 			// Store the flagged pregnancy test product in an instance variable
 			while (rs.next()) {
@@ -146,19 +198,21 @@ public class RuntimeDatabase implements SHPRCConstants{
 				if (isPregnancyTest) {
 					pregnancyTest = product;
 				}
-				// Add product to map of all products
-				productMap.put(productID, product);
 				productList.add(product);
 			}
-		} 
-		catch (SQLException e) {
+		} catch (SQLException e) {
 			System.out.println(e.getMessage());
 			return false;
 		}
 		// Ensures that the pregnancyTest and productMap objects have been initialized
-		return (pregnancyTest != null && productMap != null);
+		return (pregnancyTest != null);
 	}
 
+
+	/**
+	 * Initializes the list of categories.
+	 * @return successfully initialized
+	 */
 	private boolean initializeCategoryList() {
 		categoryList = new ArrayList<Category>();
 		try {
@@ -207,11 +261,6 @@ public class RuntimeDatabase implements SHPRCConstants{
 			return false;
 		}
 		return (affiliationMap != null && affiliations != null);
-
-	}
-
-	public ArrayList<Affiliation> getAffiliations() {
-		return affiliations;
 	}
 
 
@@ -252,40 +301,12 @@ public class RuntimeDatabase implements SHPRCConstants{
 
 
 	/**
-	 * Returns the credit a given affiliation has as a negative integer of cents.
-	 * @param affiliationID the integer community/class affiliation ID to be looked up.
-	 * @return the amount of credit a given affiliation receives
+	 * Tests whether an affiliation name is already in use.
+	 * @param name name to be tested for uniqueness
+	 * @return whether name valid
 	 */
-	public Affiliation getAffiliation(int affiliationID) {
-		if (affiliationMap.containsKey(affiliationID)) {
-			return affiliationMap.get(affiliationID);
-		}
-		return null;
-	}
-
-
-	/**
-	 * Returns the product that the administrator has specified to be the pregnancy test.
-	 * @return the pregnancy test Product object
-	 */
-	public Product getPregnancyTestProduct() {
-		return pregnancyTest;
-	}
-
-
-	/**
-	 * Returns the product associated with the specified productID.
-	 * @param productID the unique integer product ID to be looked up
-	 * @return the product associated with the specified productID
-	 */
-	public Product getProduct (int productID) {
-		return productMap.get(productID);
-	}
-
 	public boolean validProductName (String name) {
 		try {
-			/* A PreparedStatement is used here to ensure that the SQL query is correctly formatted
-			 and to allow for more easily human-readable variable insertion. */
 			PreparedStatement pstmt = connection.prepareStatement("SELECT * FROM Product WHERE productName = ?");
 			pstmt.setString(1, name);
 			ResultSet rs = pstmt.executeQuery();
@@ -304,11 +325,18 @@ public class RuntimeDatabase implements SHPRCConstants{
 		return true;
 	}
 
+
+	/**
+	 * Adds a new product to the database.
+	 * @param name the name of the product to be added
+	 * @param price the price in cents of the product to be added
+	 * @param cost the cost in cents of the product to be added
+	 * @param categoryID the category of the product to be added
+	 * @return successfully added
+	 */
 	public boolean addProduct(String name, int price, int cost, int categoryID) {
 		int productID = 0;
 		try {
-			/* A PreparedStatement is used here to ensure that the SQL query is correctly formatted
-			 and to allow for more easily human-readable variable insertion. */
 			PreparedStatement pstmt = connection.prepareStatement("SELECT MAX(productID) AS maxID FROM Product where categoryID = ?");
 			pstmt.setInt(1, categoryID);
 			ResultSet rs = pstmt.executeQuery();
@@ -318,8 +346,7 @@ public class RuntimeDatabase implements SHPRCConstants{
 			if (productID > 0) {
 				productID++;
 			} else {
-
-				productID = categoryID * 100;
+				productID = categoryID * MINIMUM_PRODUCT_ID_FACTOR;
 			}
 			pstmt = connection.prepareStatement("INSERT INTO Product VALUES (?, ?, ?, ?, 0, ?)") ;
 			pstmt.setInt(1, productID);
@@ -340,10 +367,48 @@ public class RuntimeDatabase implements SHPRCConstants{
 		return true;
 	}
 
+
+	/**
+	 * Updates the given product in the database.
+	 * @param newName the new name of the product
+	 * @param oldName the old name of the product
+	 * @param price the retail price in cents of the product
+	 * @param cost the seller cost in cents of the product
+	 * @param categoryID the categoryID of the product
+	 * @param productID the productID of the product
+	 * @return successfully updated
+	 */
+	public boolean updateProduct (String newName, String oldName, int price, int cost, int categoryID, int productID) {
+		if (!newName.equals(oldName) && !validProductName(newName)) {
+			return false;
+		}
+		try {
+			PreparedStatement pstmt = connection.prepareStatement("UPDATE Product SET productName = ?, price = ?, cost = ? WHERE productID = ?") ;
+			pstmt.setString(1, newName);
+			pstmt.setInt(2, price);
+			pstmt.setInt(3, cost);
+			pstmt.setInt(4, productID);
+			pstmt.executeUpdate();
+		}
+		catch (SQLException e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
+		catch (NullPointerException e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
+		return true;
+	}
+
+
+	/**
+	 * Deletes the given product from the database.
+	 * @param productID the productID of the product to be deleted
+	 * @return successfully deleted
+	 */
 	public boolean deleteProduct(int productID) {
 		try {
-			/* A PreparedStatement is used here to ensure that the SQL query is correctly formatted
-			 and to allow for more easily human-readable variable insertion. */
 			PreparedStatement pstmt = connection.prepareStatement("SELECT * FROM PurchasedProduct WHERE productID = ?");
 			pstmt.setInt(1, productID);
 			ResultSet rs = pstmt.executeQuery();
@@ -365,10 +430,112 @@ public class RuntimeDatabase implements SHPRCConstants{
 		return true;
 	}
 
+	
+	/**
+	 * Tests whether an affiliation name is already in use.
+	 * @param name name to be tested for uniqueness
+	 * @return whether name valid
+	 */
+	public boolean validAffiliationName (String name) {
+		try {
+			PreparedStatement pstmt = connection.prepareStatement("SELECT * FROM Affiliation WHERE affiliationName = ?");
+			pstmt.setString(1, name);
+			ResultSet rs = pstmt.executeQuery();
+			if (rs.next()) {
+				return false;
+			}
+		}
+		catch (SQLException e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
+		catch (NullPointerException e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Adds a new affiliation to the database.
+	 * @param name the name of the affiliation to be added
+	 * @param credit the credit in cents associated with the affiliation
+	 * @param subsidyOn whether the affiliation receives a pregnancy test subsidy
+	 * @return successfully added
+	 */
+	public boolean addAffiliation (String name, int credit, boolean subsidyOn) {
+		int affiliationID = 0;
+		try {
+			Statement stmt = connection.createStatement();
+			ResultSet rs = stmt.executeQuery("SELECT MAX(affiliationID) as maxID from Affiliation");
+			if (rs.next()) {
+				affiliationID = rs.getInt("maxID");
+			}
+			if (affiliationID > 0) {
+				affiliationID++;
+			} else {
+				affiliationID = MINIMUM_AFFILIATION_ID;
+			}
+			PreparedStatement pstmt = connection.prepareStatement("INSERT INTO Affiliation VALUES (?, ?, ?, ?)") ;
+			pstmt.setInt(1, affiliationID);
+			pstmt.setString(2, name);
+			pstmt.setInt(3, credit * -1);
+			pstmt.setBoolean(4, subsidyOn);
+			pstmt.executeUpdate();
+		}
+		catch (SQLException e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
+		catch (NullPointerException e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
+		return true;
+	}
+
+
+	/**
+	 * Updates the given affiliation in the database.
+	 * @param newName the new name of the affiliation
+	 * @param oldName the old name of the affiliation
+	 * @param credit the credit in cents associated with the affiliation
+	 * @param subsidyOn whether the affiliation receives a pregnancy test subsidy
+	 * @param affiliationID the affiliationID of the affiliation to be updated
+	 * @return successfully updated
+	 */
+	public boolean updateAffiliation (String newName, String oldName, int credit, boolean subsidyOn, int affiliationID) {
+		if (!newName.equals(oldName) && !validAffiliationName(newName)) {
+			return false;
+		}
+		try {
+			PreparedStatement pstmt = connection.prepareStatement("UPDATE Affiliation set affiliationName = ?, " +
+			"affiliationCredit = ?, qualifiesForSubsidy = ? where affiliationID = ?") ;
+			pstmt.setString(1, newName);
+			pstmt.setInt(2, credit * -1);
+			pstmt.setBoolean(3, subsidyOn);
+			pstmt.setInt(4, affiliationID);
+			pstmt.executeUpdate();
+		}
+		catch (SQLException e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
+		catch (NullPointerException e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
+		return true;
+	}
+
+
+	/**
+	 * Deletes the affiliation from the database.
+	 * @param affiliationID the affiliation ID of the affiliation to be deleted.
+	 * @return successfully deleted
+	 */
 	public boolean deleteAffiliation(int affiliationID) {
 		try {
-			/* A PreparedStatement is used here to ensure that the SQL query is correctly formatted
-			 and to allow for more easily human-readable variable insertion. */
 			PreparedStatement pstmt = connection.prepareStatement("SELECT * from Client WHERE affiliationID = ?");
 			pstmt.setInt(1, affiliationID);
 			ResultSet rs = pstmt.executeQuery();
@@ -390,10 +557,105 @@ public class RuntimeDatabase implements SHPRCConstants{
 		return true;
 	}
 
+	
+	/**
+	 * Tests whether a category name is already in use.
+	 * @param name name to be tested for uniqueness
+	 * @return whether name valid
+	 */
+	public boolean validCategoryName (String name) {
+		try {
+			PreparedStatement pstmt = connection.prepareStatement("SELECT * FROM Category WHERE categoryName = ?");
+			pstmt.setString(1, name);
+			ResultSet rs = pstmt.executeQuery();
+			if (rs.next()) {
+				return false;
+			}
+		}
+		catch (SQLException e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
+		catch (NullPointerException e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
+		return true;
+	}
+
+
+	/**
+	 * Adds a new category to the database.
+	 * @param name the name of the category to be added
+	 * @return successfully added
+	 */
+	public boolean addCategory (String name) {
+		int categoryID = 0;
+		try {
+			Statement stmt = connection.createStatement();
+			ResultSet rs = stmt.executeQuery("SELECT MAX(categoryID) as maxID from Category");
+			if (rs.next()) {
+				categoryID = rs.getInt("maxID");
+			}
+			if (categoryID > 0) {
+				categoryID++;
+			} else {
+				categoryID = MINIMUM_CATEGORY_ID;
+			}
+			PreparedStatement pstmt = connection.prepareStatement("INSERT INTO Category VALUES (?, ?)") ;
+			pstmt.setInt(1, categoryID);
+			pstmt.setString(2, name);
+			pstmt.executeUpdate();
+		}
+		catch (SQLException e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
+		catch (NullPointerException e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
+		return true;
+	}
+
+
+	/**
+	 * Updates the given category in the database.
+	 * @param newName the new name of the category
+	 * @param oldName the old name of the category
+	 * @param categoryID the categoryID of the category to be updated
+	 * @return successfully updated
+	 */
+	public boolean updateCategory (String newName, String oldName, int categoryID) {
+		if (!newName.equals(oldName) && !validCategoryName(newName)) {
+			// tests to ensure a new name is not already in use for another category
+			return false;
+		}
+		try {
+			PreparedStatement pstmt = connection.prepareStatement("UPDATE Category SET categoryName = ? WHERE categoryID = ?") ;
+			pstmt.setString(1, newName);
+			pstmt.setInt(2, categoryID);
+			pstmt.executeUpdate();
+		}
+		catch (SQLException e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
+		catch (NullPointerException e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
+		return true;
+	}
+
+
+	/**
+	 * Deletes the given category from the database.
+	 * @param categoryID the categoryID of the category to be deleted
+	 * @return successfully deleted
+	 */
 	public boolean deleteCategory(int categoryID) {
 		try {
-			/* A PreparedStatement is used here to ensure that the SQL query is correctly formatted
-			 and to allow for more easily human-readable variable insertion. */
 			PreparedStatement pstmt = connection.prepareStatement("SELECT * from Product WHERE categoryID = ?");
 			pstmt.setInt(1, categoryID);
 			ResultSet rs = pstmt.executeQuery();
@@ -415,183 +677,84 @@ public class RuntimeDatabase implements SHPRCConstants{
 		return true;
 	}
 
-	public boolean validAffiliationName (String name) {
+
+	/**
+	 * Writes all information about a purchase to the database.
+	 * @param purchase the purchase to be written
+	 * @return successfully written
+	 */
+	public boolean writePurchase (PurchaseModel purchase) {
+	
+		int purchaseID = 0;
+	
 		try {
-			/* A PreparedStatement is used here to ensure that the SQL query is correctly formatted
-			 and to allow for more easily human-readable variable insertion. */
-			PreparedStatement pstmt = connection.prepareStatement("SELECT * FROM Affiliation WHERE affiliationName = ?");
-			pstmt.setString(1, name);
+			connection.setAutoCommit(false);
+			PreparedStatement pstmt = null;
+			pstmt = connection.prepareStatement("SELECT Max(purchaseID) AS maxID from Purchase");
 			ResultSet rs = pstmt.executeQuery();
 			if (rs.next()) {
+				purchaseID = rs.getInt("maxID");
+			}
+			if (purchaseID > 0) {
+				purchaseID++;
+			} else {
+				purchaseID = MINIMUM_PURCHASE_ID;
+			}
+	
+			int[] totals = purchase.getTotals();
+			Client client = purchase.getCurrentClient();
+	
+			int creditUsed = -1 * totals[CREDIT] + -1 * totals[PT_SUBSIDY];
+			int total = totals[TOTAL];
+			Date date= new Date();
+			Timestamp timestamp = new Timestamp(date.getTime());
+			int affiliationID = client.getAffiliation();
+	
+			pstmt =  connection.prepareStatement("INSERT INTO Purchase VALUES (?, ?, ?, ?, ?)");
+			pstmt.setInt(1, purchaseID);
+			pstmt.setString(2, timestamp.toString());
+			pstmt.setInt(3, total);
+			pstmt.setInt(4, creditUsed);
+			pstmt.setInt(5, affiliationID);
+	
+			pstmt.executeUpdate();
+	
+			if (!writePurchasedProducts(purchase, purchaseID)) { 
+				// Calls for all products in purchase to be written to database. Returns false on failure.
 				return false;
 			}
-		}
-		catch (SQLException e) {
-			System.err.println(e.getMessage());
-			return false;
-		}
-		catch (NullPointerException e) {
-			System.err.println(e.getMessage());
-			return false;
-		}
-		return true;
-	}
-
-	public boolean validCategoryName (String name) {
-		try {
-			/* A PreparedStatement is used here to ensure that the SQL query is correctly formatted
-			 and to allow for more easily human-readable variable insertion. */
-			PreparedStatement pstmt = connection.prepareStatement("SELECT * FROM Category WHERE categoryName = ?");
-			pstmt.setString(1, name);
-			ResultSet rs = pstmt.executeQuery();
-			if (rs.next()) {
+	
+			// Either writes new client to database or creates new client entry.
+			if (purchase.isNewClient()) {
+				if (!addClient(client, totals)) {
+					return false;
+				}
+			} else if (!updateClient(client, totals)) {
 				return false;
 			}
-		}
-		catch (SQLException e) {
+	
+			connection.commit();
+			connection.setAutoCommit(true);
+	
+		} catch (SQLException e) {
+			System.err.println("In writePurchase" + e.getMessage());
+			return false;
+	
+		} catch (NullPointerException e) {
 			System.err.println(e.getMessage());
 			return false;
 		}
-		catch (NullPointerException e) {
-			System.err.println(e.getMessage());
-			return false;
-		}
+	
 		return true;
 	}
 
-	public boolean addAffiliation (String name, int credit, boolean subsidyOn) {
-		int affiliationID = 0;
-		try {
-			/* A PreparedStatement is used here to ensure that the SQL query is correctly formatted
-			 and to allow for more easily human-readable variable insertion. */
 
-			Statement stmt = connection.createStatement();
-			ResultSet rs = stmt.executeQuery("SELECT MAX(affiliationID) as maxID from Affiliation");
-			if (rs.next()) {
-				affiliationID = rs.getInt("maxID");
-			}
-			if (affiliationID > 0) {
-				affiliationID++;
-			} else {
-				affiliationID = 1000;
-			}
-			PreparedStatement pstmt = connection.prepareStatement("INSERT INTO Affiliation VALUES (?, ?, ?, ?)") ;
-			pstmt.setInt(1, affiliationID);
-			pstmt.setString(2, name);
-			pstmt.setInt(3, credit * -1);
-			pstmt.setBoolean(4, subsidyOn);
-			pstmt.executeUpdate();
-		}
-		catch (SQLException e) {
-			System.err.println(e.getMessage());
-			return false;
-		}
-		catch (NullPointerException e) {
-			System.err.println(e.getMessage());
-			return false;
-		}
-		return true;
-	}
-
-	public boolean updateAffiliation (String name, int credit, boolean subsidyOn, int affiliationID) {
-		try {
-			/* A PreparedStatement is used here to ensure that the SQL query is correctly formatted
-			 and to allow for more easily human-readable variable insertion. */
-
-			PreparedStatement pstmt = connection.prepareStatement("UPDATE Affiliation set affiliationName = ?, affiliationCredit = ?, qualifiesForSubsidy = ? where affiliationID = ?") ;
-			pstmt.setString(1, name);
-			pstmt.setInt(2, credit * -1);
-			pstmt.setBoolean(3, subsidyOn);
-			pstmt.setInt(4, affiliationID);
-			pstmt.executeUpdate();
-		}
-		catch (SQLException e) {
-			System.err.println(e.getMessage());
-			return false;
-		}
-		catch (NullPointerException e) {
-			System.err.println(e.getMessage());
-			return false;
-		}
-		return true;
-	}
-
-	public boolean addCategory (String name) {
-		int categoryID = 0;
-		try {
-			/* A PreparedStatement is used here to ensure that the SQL query is correctly formatted
-			 and to allow for more easily human-readable variable insertion. */
-
-			Statement stmt = connection.createStatement();
-			ResultSet rs = stmt.executeQuery("SELECT MAX(categoryID) as maxID from Category");
-			if (rs.next()) {
-				categoryID = rs.getInt("maxID");
-			}
-			if (categoryID > 0) {
-				categoryID++;
-			} else {
-				categoryID = 1;
-			}
-			PreparedStatement pstmt = connection.prepareStatement("INSERT INTO Category VALUES (?, ?)") ;
-			pstmt.setInt(1, categoryID);
-			pstmt.setString(2, name);
-			pstmt.executeUpdate();
-		}
-		catch (SQLException e) {
-			System.err.println(e.getMessage());
-			return false;
-		}
-		catch (NullPointerException e) {
-			System.err.println(e.getMessage());
-			return false;
-		}
-		return true;
-	}
-
-	public boolean updateProduct (String name, int price, int cost, int categoryID, int productID) {
-		try {
-			/* A PreparedStatement is used here to ensure that the SQL query is correctly formatted
-			 and to allow for more easily human-readable variable insertion. */
-
-			PreparedStatement pstmt = connection.prepareStatement("UPDATE Product SET productName = ?, price = ?, cost = ? WHERE productID = ?") ;
-			pstmt.setString(1, name);
-			pstmt.setInt(2, price);
-			pstmt.setInt(3, cost);
-			pstmt.setInt(4, productID);
-			pstmt.executeUpdate();
-		}
-		catch (SQLException e) {
-			System.err.println(e.getMessage());
-			return false;
-		}
-		catch (NullPointerException e) {
-			System.err.println(e.getMessage());
-			return false;
-		}
-		return true;
-	}
-
-	public boolean updateCategory (String name, int categoryID) {
-		try {
-			/* A PreparedStatement is used here to ensure that the SQL query is correctly formatted
-			 and to allow for more easily human-readable variable insertion. */
-
-			PreparedStatement pstmt = connection.prepareStatement("UPDATE Category SET categoryName = ? WHERE categoryID = ?") ;
-			pstmt.setString(1, name);
-			pstmt.setInt(2, categoryID);
-			pstmt.executeUpdate();
-		}
-		catch (SQLException e) {
-			System.err.println(e.getMessage());
-			return false;
-		}
-		catch (NullPointerException e) {
-			System.err.println(e.getMessage());
-			return false;
-		}
-		return true;
-	}
-
+	/**
+	 * Write the products in a purchase to the database.
+	 * @param purchase the purchase to be written to the database
+	 * @param purchaseID the purchaseID of the purchase
+	 * @return successfully written
+	 */
 	public boolean writePurchasedProducts (PurchaseModel purchase, int purchaseID) {
 		try {
 
@@ -608,7 +771,7 @@ public class RuntimeDatabase implements SHPRCConstants{
 				pstmt.setInt(1, purchaseID);
 				pstmt.setInt(2, productID);
 				pstmt.setInt(3, quantity);
-				
+
 				pstmt.executeUpdate();
 			}
 		} catch (SQLException e) {
@@ -618,24 +781,28 @@ public class RuntimeDatabase implements SHPRCConstants{
 		return true;
 	}
 
+
+	/**
+	 * Adds a client to the database.
+	 * @param client the client to be added
+	 * @param totals the totals of a purchase
+	 * @return successfully added
+	 */
 	private boolean addClient (Client client, int[] totals) {
 		try {
 			int SUID = client.getSUID();
-			System.out.println("client.getCredit() returns "+client.getCredit());
-			System.out.println("totals[credit] returns" + totals[CREDIT]);
 			int credit = client.getCredit() - totals[CREDIT];
 			int affiliationID = client.getAffiliation();
 			boolean testUsed = totals[PT_SUBSIDY] != 0;
-			
-			
+
 			PreparedStatement pstmt = connection.prepareStatement("INSERT INTO Client VALUES(?, ?, ?, ?)");
 			pstmt.setInt(1, SUID);
 			pstmt.setInt(2, credit);
 			pstmt.setBoolean(3, testUsed);
 			pstmt.setInt(4, affiliationID);
-			
+
 			pstmt.executeUpdate();
-			
+
 		} catch (SQLException e) {
 			System.err.println(e.getMessage());
 			return false;
@@ -643,20 +810,27 @@ public class RuntimeDatabase implements SHPRCConstants{
 
 		return true;
 	}
+
 	
+	/**
+	 * Update the given client in the database.
+	 * @param client the client to be updated
+	 * @param totals the totals of a purchase
+	 * @return successfully updated
+	 */
 	private boolean updateClient (Client client, int[] totals) {
 		try {
 			int SUID = client.getSUID();
 			int credit = client.getCredit() - totals[CREDIT];
 			boolean testUsed = totals[PT_SUBSIDY] != 0; //stays at zero if unused
-			
+
 			PreparedStatement pstmt = connection.prepareStatement("UPDATE Client SET creditAvailable = ?, pregnancyTestUsed = ? WHERE SUID = ?");
 			pstmt.setInt(1, credit);
 			pstmt.setBoolean(2, testUsed);
 			pstmt.setInt(3, SUID);
-			
+
 			pstmt.executeUpdate();
-			
+
 		} catch (SQLException e) {
 			System.err.println(e.getMessage());
 			return false;
@@ -664,73 +838,4 @@ public class RuntimeDatabase implements SHPRCConstants{
 
 		return true;
 	}
-
-
-	public boolean writePurchase (PurchaseModel purchase) {
-
-		int purchaseID = 0;
-
-		try {
-			/* A PreparedStatement is used here to ensure that the SQL query is correctly formatted
-			 and to allow for more easily human-readable variable insertion. */
-			connection.setAutoCommit(false);
-			PreparedStatement pstmt = null;
-			pstmt = connection.prepareStatement("SELECT Max(purchaseID) AS maxID from Purchase");
-			ResultSet rs = pstmt.executeQuery();
-			if (rs.next()) {
-				purchaseID = rs.getInt("maxID");
-			}
-			if (purchaseID > 0) {
-				purchaseID++;
-			} else {
-				purchaseID = MINIMUM_PURCHASE_ID;
-			}
-			
-			System.out.println("purchaseID is : "+purchaseID);
-
-			int[] totals = purchase.getTotals();
-			Client client = purchase.getCurrentClient();
-			
-			if (purchase.isNewClient()) {
-				if (!addClient(client, totals)) {
-					return false;
-				}
-			} else if (!updateClient(client, totals)) {
-				return false;
-			}
-
-			int creditUsed = -1 * totals[CREDIT] + -1 * totals[PT_SUBSIDY];
-			int total = totals[TOTAL];
-			Date date= new Date();
-			Timestamp timestamp = new Timestamp(date.getTime());
-			int affiliationID = client.getAffiliation();
-
-			pstmt =  connection.prepareStatement("INSERT INTO Purchase VALUES (?, ?, ?, ?, ?)");
-			pstmt.setInt(1, purchaseID);
-			pstmt.setString(2, timestamp.toString());
-			pstmt.setInt(3, total);
-			pstmt.setInt(4, creditUsed);
-			pstmt.setInt(5, affiliationID);
-			
-			pstmt.executeUpdate();
-
-
-			if (!writePurchasedProducts(purchase, purchaseID)) {
-				return false;
-			}
-
-			connection.commit();
-			connection.setAutoCommit(true);
-		}
-		catch (SQLException e) {
-			System.err.println("In writePurchase" + e.getMessage());
-			return false;
-		}
-		catch (NullPointerException e) {
-			System.err.println(e.getMessage());
-			return false;
-		}
-		return true;
-	}
 }
-

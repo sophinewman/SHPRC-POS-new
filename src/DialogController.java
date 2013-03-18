@@ -21,6 +21,11 @@ public class DialogController {
 		dialogView = new AdminDialog(this, parentFrame, adminTask, rDB.getAffiliations(), rDB.getProductList(), rDB.getCategoryList());
 	}
 
+	public void itemSelected(Object obj) {
+		selectedObject = obj;
+		dialogView.enableUpdateAndDelete();
+	}
+
 	public void addProduct() {
 		subDialog = new ProductDialog(this, dialogView, "Update Product", rDB.getCategoryList().toArray(), false);
 		subDialog.setVisible(true);
@@ -110,17 +115,6 @@ public class DialogController {
 		}
 	}
 
-	public void exit() {
-		dialogView.close();
-	}
-
-
-
-	public void itemSelected(Object obj) {
-		selectedObject = obj;
-		dialogView.enableUpdateAndDelete();
-	}
-
 	private String getMoneyString(String dollars, String cents) {
 		if (cents.length() > 2) {
 			return null;
@@ -156,7 +150,7 @@ public class DialogController {
 			return;
 		}
 		Category category = (Category)selectedObject;
-		if (!rDB.updateCategory(name, category.getCategoryID())) {
+		if (!rDB.updateCategory(name, category.getCategoryName(), category.getCategoryID())) {
 			((CategoryDialog)subDialog).inputError("Category update failed.");
 			return;
 		}
@@ -187,7 +181,8 @@ public class DialogController {
 		((ProductDialog) subDialog).close();
 	}
 
-	public void updateProduct(String name, String priceDollars, String priceCents, String costDollars, String costCents, Category category) {
+	public void updateProduct(String name, String priceDollars, String priceCents, 
+			String costDollars, String costCents, Category category) {
 		String priceString = getMoneyString(priceDollars, priceCents);
 		String costString = getMoneyString(costDollars, costCents);
 		if (priceString == null || costString == null) {
@@ -199,7 +194,8 @@ public class DialogController {
 			return;
 		}
 		Product toUpdate = (Product) selectedObject;
-		if (!rDB.updateProduct(name, Integer.parseInt(priceString), Integer.parseInt(costString), category.getCategoryID(), toUpdate.getProductID())) {
+		if (!rDB.updateProduct(name, toUpdate.getName(), Integer.parseInt(priceString), 
+				Integer.parseInt(costString), category.getCategoryID(), toUpdate.getProductID())) {
 			((ProductDialog) subDialog).inputError("Product update failed.");
 			return;
 		}
@@ -240,11 +236,18 @@ public class DialogController {
 			return;
 		}
 		Affiliation toUpdate = (Affiliation) selectedObject;
-		rDB.updateAffiliation(name, Integer.parseInt(creditString), subsidyOn, toUpdate.getAffiliationID());
+		if (!rDB.updateAffiliation(name, toUpdate.getName(), Integer.parseInt(creditString), subsidyOn, toUpdate.getAffiliationID())) {
+			((AffiliationDialog) subDialog).inputError("Affiliation update failed.");
+			return;
+		}
 		reset();
 		((AffiliationDialog) subDialog).close();
 	}
-	
+
+	public void exit() {
+		dialogView.close();
+	}
+
 	private void reset() {
 		try {
 			rDB.closeDatabase();

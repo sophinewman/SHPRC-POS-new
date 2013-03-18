@@ -5,7 +5,7 @@
  * Stores information about a client.
  * 
  * @author Sophi Newman
- * @version 0.1 2/8/13
+ * @version 1.0 03/17/2013
  */
 
 public class Client {
@@ -107,7 +107,7 @@ public class Client {
 
 	/**
 	 * Returns whether or not the client can receive a free pregnancy test based on
-	 * if a) he/she/ze qualifies based on affiliation and b) if a test has already
+	 * if a) he/she/hir qualifies based on affiliation and b) if a test has already
 	 * been redeemed this quarter.
 	 * @return whether a client qualifies for a free pregnancy test
 	 */

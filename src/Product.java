@@ -1,13 +1,10 @@
-import java.text.NumberFormat;
-import java.util.Locale;
-
 /**
  * SHPRC-POS
  * Product.java
  * Stores information about a product.
  * 
  * @author Sophi Newman
- * @version 0.1 2/8/13
+ * @version 1.0 03/17/2013
  */
 
 public class Product implements SHPRCConstants{
@@ -18,14 +15,8 @@ public class Product implements SHPRCConstants{
 	/* The retail price for the given product */
 	private int price;
 	
+	/* The cost to the seller of the given product */
 	private int cost;
-	
-	/**
-	 * @return the cost
-	 */
-	public int getCost() {
-		return cost;
-	}
 
 	/* The productName of the given product */
 	private String productName;
@@ -33,16 +24,18 @@ public class Product implements SHPRCConstants{
 	/* The ID number of the category to which the product belongs */
 	private int categoryID;
 	
+	/* The name of the category to which the product belongs */
 	private String categoryName;
 
-	
 	
 	/**
 	 * Class constructor.
 	 * @param productID the productID of the product to be created
-	 * @param price the cost of the product in cents
-	 * @param productName
-	 * @param categoryID
+	 * @param price the retail price of the product in cents
+	 * @param cost the cost to seller of the product in cents
+	 * @param productName the name of the product
+	 * @param categoryID the categoryID of the product to be created
+	 * @param categoryName the name of the category to which the product belongs
 	 */
 	public Product(int productID, int price, int cost, String productName, int categoryID, String categoryName) {
 		this.productID = productID;
@@ -63,6 +56,14 @@ public class Product implements SHPRCConstants{
 		return price;
 	}
 	
+	
+	/**
+	 * Returns the cost in cents of the product.
+	 * @return the cost of the product
+	 */
+	public int getCost() {
+		return cost;
+	}
 
 	/**
 	 * Returns the unique product ID associated with the product.
@@ -90,13 +91,13 @@ public class Product implements SHPRCConstants{
 	}
 	
 	/**
-	 * For debugging purposes only.
-	 * @return the string representation of the Product
+	 * Returns a string representation of the product. Used in JList display.
+	 * @return the string representation of the product
 	 */
 	@Override
 	public String toString() {
-		
-		return "<html><u>" + productName + ":</u> " + CURRENCY_FORMAT.format(price/100.0) + ", <i>" + categoryName + "</i></html>";
+		return "<html><u>" + productName + ":</u> " + CURRENCY_FORMAT.format(price/100.0) +
+			", <i>" + categoryName + "</i></html>";
 	}
 
 }

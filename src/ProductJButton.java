@@ -2,29 +2,46 @@ import java.awt.Color;
 import java.awt.Font;
 
 import javax.swing.JButton;
-
+/**
+ * SHPRC-POS
+ * ProductJButton.java
+ * Creates a JButton formatted for displaying a product; also stores the product in question.
+ * 
+ * @author Sophi Newman
+ * @version 1.0 03/17/2013
+ */
 
 public class ProductJButton extends JButton implements SHPRCConstants {
 
-
-	private int productID;
+	/* The product this button corresponds to */
+	private Product product;
 	
-	public ProductJButton (String str, int productID) {
+	/**
+	 * Class constructor.
+	 * @param str the name of the product
+	 * @param product the stored representation of the product
+	 */
+	public ProductJButton (String str, Product product) {
 		super(str);
-		this.productID = productID;
+		this.product = product;
 		this.setFont(new Font("Helvetica", Font.BOLD, 14));
-		this.setBackground(getColor(str));
+		this.setBackground(getColor());
 	}
 	
-	private Color getColor(String str) {
-//		if (productID/100 >= COLORS.length) {
-//			return LIGHT_GREY;
-//		}
-		return COLORS[(productID/100) % COLORS.length];
+	/**
+	 * Returns a background color based on the product's categoryID
+	 * @return a background color
+	 */
+	private Color getColor() {
+		return COLORS[(product.getCategoryID()) % COLORS.length];
 	}
 	
-	public int getProductID() {
-		return productID;
+	/**
+	 * Returns the product corresponding to the button.
+	 * @return the product corresponding to the button
+	 */
+	public Product getProduct() {
+		return product;
 	}
 
 }

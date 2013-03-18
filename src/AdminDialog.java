@@ -15,19 +15,48 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.ArrayList;
 
+/**
+ * SHPRC-POS
+ * AdminDialog.java
+ * Displays administrative tools for changing the back end.
+ * 
+ * @author Sophi Newman
+ * @version 1.0 03/17/2013
+ */
+
 public class AdminDialog extends JDialog implements SHPRCConstants, ActionListener, ListSelectionListener {
 
+	/* The DialogController object that relays information between the back end (a RuntimeDatabase) and the AdminDialog. */
 	private DialogController dialogController;
-	private JPanel selectedPane;
-	private JList infoList;
-	private JButton addButton;
-	private JButton updateButton;
-	private JButton deleteButton;
-	private JButton backButton;
+	
+	/* The String that specifies which administrative task will be carried out. Must be equal to one of three constants
+	 * specified in SHPRCConstants, MANAGE_CATEGORIES, MANAGE_PRODUCTS, or MANAGE_AFFILIATIONS_AND_CREDIT */
 	private String task;
+	
+	/* The JPanel to be displayed, determined and populated by which administrative task is specified. */
+	private JPanel selectedPane; 
+	
+	/* The JList of Affiliation, Category, or Product objects displayed by the program. */
+	private JList objectList;
+	
+	private JButton addButton; // The JButton that triggers adding an object to the back end.
+	private JButton updateButton; // The JButton that triggers updating an object in the back end.
+	private JButton deleteButton; // The JButton that triggers deleting an object in the back end.
+	
+	private JButton backButton; // The JButton that triggers closing the dialog and returning.
+	
 
-
-	public AdminDialog (DialogController dialogController, JFrame frame, String task, ArrayList<Affiliation> affiliationList, ArrayList<Product> productList, ArrayList<Category> categoryList) {
+	/**
+	 * Class constructor.
+	 * @param dialogController the MVC framework controller to be passed in
+	 * @param frame the parent Swing Container
+	 * @param task the admin task to be carried out
+	 * @param affiliationList all of the affiliations in the back end
+	 * @param productList all of the products in the back end
+	 * @param categoryList all of the categories in the back end
+	 */
+	public AdminDialog (DialogController dialogController, JFrame frame, String task, ArrayList<Affiliation> affiliationList, 
+							ArrayList<Product> productList, ArrayList<Category> categoryList) {
 		super(frame, task, false); // creates a JDialog whose parent is the frame, title is the task, and _is not_ modal
 		this.task = task;
 		this.dialogController = dialogController;
@@ -46,6 +75,13 @@ public class AdminDialog extends JDialog implements SHPRCConstants, ActionListen
 
 	}
 
+	
+	/**
+	 * Draws the main components of the dialog.
+	 * @param task the admin task to be carried out
+	 * @param objects all objects of the type corresponding to the task
+	 * @return a JPanel populated with content
+	 */
 	private JPanel drawContentPane(String task, Object[] objects) {
 		JPanel productPane;
 		productPane = new JPanel();
@@ -61,6 +97,11 @@ public class AdminDialog extends JDialog implements SHPRCConstants, ActionListen
 	}
 
 
+	/**
+	 * Draws a JPanel with a list of objects corresponding to a task and control buttons.
+	 * @param objects all objects of the type corresponding to the task
+	 * @return a JPanel populated with the object JList and control JButtons
+	 */
 	private JPanel drawListPane (Object[] objects) {
 		JPanel listPane = new JPanel();
 
@@ -87,7 +128,7 @@ public class AdminDialog extends JDialog implements SHPRCConstants, ActionListen
 		addButton.addActionListener(this);
 		listButtonPane.add(addButton);
 
-		drawInfoList(listPane, objects);
+		drawObjectList(listPane, objects);
 
 		listPane.add(new JLabel("    "), BorderLayout.WEST);
 
@@ -95,30 +136,42 @@ public class AdminDialog extends JDialog implements SHPRCConstants, ActionListen
 		return listPane;
 	}
 
-	private void drawInfoList(JPanel listPane, Object[] objects) {
-		infoList = new JList(objects);
-		JScrollPane scrollPane = new JScrollPane(infoList);
-		infoList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		infoList.addListSelectionListener(this);
+	
+	/**
+	 * Draws the JList based on the given objects.
+	 * @param listPane the parent container
+	 * @param objects all objects of the type corresponding to the task
+	 */
+	private void drawObjectList(JPanel listPane, Object[] objects) {
+		objectList = new JList(objects);
+		JScrollPane scrollPane = new JScrollPane(objectList);
+		objectList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		objectList.addListSelectionListener(this);
 		listPane.add(scrollPane, BorderLayout.CENTER);
 	}
 
+	
+	/**
+	 * Draws the control option buttons in a JPanel.
+	 * @return the JPanel with buttons
+	 */
 	private JPanel drawOptionButtons() {
 		JPanel optionButtonPanel = new JPanel();
-
-
 
 		backButton = new JButton("Back");
 		backButton.addActionListener(this);
 		optionButtonPanel.add(backButton);
-
-
 
 		return optionButtonPanel;
 
 	}
 
 
+	/**
+	 * Populates a JPanel with the specified title.
+	 * @param title the title displayed above the object JList
+	 * @return a JPanel dispalying the specified title
+	 */
 	private JPanel drawTitlePanel(String title) {
 		JPanel titlePanel = new JPanel();
 
@@ -134,6 +187,11 @@ public class AdminDialog extends JDialog implements SHPRCConstants, ActionListen
 		return titlePanel;
 	}
 
+	
+	/**
+	 * Handles all ActionEvents by triggering the appropriate response by the controller.
+	 */
+	@Override
 	public void actionPerformed(ActionEvent event) {
 		Object src = event.getSource();
 		if (src == addButton) {
@@ -174,24 +232,41 @@ public class AdminDialog extends JDialog implements SHPRCConstants, ActionListen
 		}
 	}
 
+	
+	/**
+	 * Handles the event generated by an item in the JList being selected. 
+	 * Triggers appropriate response by the controller.
+	 */
+	@Override
+	public void valueChanged(ListSelectionEvent event) {
+		dialogController.itemSelected(objectList.getSelectedValue());
+	}
+
+
+	/**
+	 * Closes the dialog.
+	 */
 	public void close() {
 		this.dispose();
 	}
 
-	public void valueChanged(ListSelectionEvent event) {
-		dialogController.itemSelected(infoList.getSelectedValue());
-	}
-
+	
+	/**
+	 * Enables the update and delete functions.
+	 */
 	public void enableUpdateAndDelete() {
 		updateButton.setEnabled(true);
 		deleteButton.setEnabled(true);
 	}
 	
-	public int confirmDecision(String str) {
-		return JOptionPane.showConfirmDialog(this, str, "Consent Is Active", JOptionPane.YES_NO_OPTION);
+	
+	/**
+	 * Displays a JOptionPane confirming a user's action.
+	 * @param messsage the message to be displayed
+	 * @return the JOptionPane constant corresponding to user's decision
+	 */
+	public int confirmDecision(String message) {
+		return JOptionPane.showConfirmDialog(this, message, "Consent Is Active", JOptionPane.YES_NO_OPTION);
 	}
-
-
-
 
 }
