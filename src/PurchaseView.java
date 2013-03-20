@@ -95,6 +95,14 @@ public class PurchaseView implements ActionListener, SHPRCConstants {
 	public void displayError (String errorMessage) {
 		JOptionPane.showMessageDialog(purchasePane, errorMessage, "Input Error", JOptionPane.ERROR_MESSAGE);
 	}
+	
+	/**
+	 * Displays a message to the user.
+	 * @param message the message to be displayed
+	 */
+	public void displayMessage (String message) {
+		JOptionPane.showMessageDialog(purchasePane, message, "Message", JOptionPane.PLAIN_MESSAGE);
+	}
 
 	
 	/**
@@ -114,7 +122,6 @@ public class PurchaseView implements ActionListener, SHPRCConstants {
 			Product product = pair.getKey();
 			String productName = product.getName();
 			int productPrice = product.getPrice();
-			int productID = product.getProductID();
 			int quantity = pair.getValue();
 			String totalPriceString = CURRENCY_FORMAT.format(productPrice*quantity/100.0);
 	
@@ -164,6 +171,16 @@ public class PurchaseView implements ActionListener, SHPRCConstants {
 	public void displayTotalDialog(String total) {
 		TotalDialog totalDialog = new TotalDialog(controller, frame, total);
 		totalDialog.setVisible(true);
+	}
+	
+	/**
+	 * Displays a dialog with the three most recent purchases available for void selection.
+	 * @param recentPurchases the three most recent purchases
+	 * @return the selected purchase
+	 */
+	public PurchaseModel displayVoidChoices(PurchaseModel[] recentPurchases) {
+		Object selected = JOptionPane.showInputDialog(frame, "Select a purchase to void", "Void", JOptionPane.PLAIN_MESSAGE, null, recentPurchases, recentPurchases[0]);
+		return (PurchaseModel) selected;
 	}
 
 	
@@ -270,7 +287,7 @@ public class PurchaseView implements ActionListener, SHPRCConstants {
 		} else if (src instanceof PurchaseProductJButton) {
 			controller.selectProductToModify((PurchaseProductJButton) src);
 			
-		} else if (src == enterClientButton) {
+		} else if (src == enterClientButton || src == suidField) {
 			String suid = suidField.getText();
 			Affiliation affiliation = (Affiliation) affiliationComboBox.getSelectedItem();
 			controller.setClient(suid, affiliation.getAffiliationID());
@@ -288,6 +305,9 @@ public class PurchaseView implements ActionListener, SHPRCConstants {
 			
 		} else if (src == submitButton) {
 			controller.submitPurchase();
+			
+		} else if (src == voidButton ) {
+			controller.voidPurchase();
 			
 		} else if (src == adminViewButton) {
 			controller.switchToAdmin();
@@ -413,8 +433,7 @@ public class PurchaseView implements ActionListener, SHPRCConstants {
 		purchasePane.add(adminViewButton);
 
 		voidButton = new HelveticaJButton("Void", 13);
-		voidButton.setToolTipText("Coming soon!");
-		voidButton.setEnabled(false);
+		voidButton.addActionListener(this);
 		voidButton.setBounds(205, 528, 130, 31);
 		purchasePane.add(voidButton);
 	}
@@ -540,6 +559,7 @@ public class PurchaseView implements ActionListener, SHPRCConstants {
 		suidField = new JTextField(10);
 		suidField.setBounds(90, 40, 120, 27);
 		suidField.setFont(new Font("Helvetica", Font.PLAIN, 12));
+		suidField.addActionListener(this);
 		clientPane.add(suidField);
 
 		affiliationComboBox = new JComboBox(affiliations.toArray());

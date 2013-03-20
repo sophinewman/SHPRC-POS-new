@@ -6,10 +6,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -18,9 +16,9 @@ import java.util.Map.Entry;
  * SHPRC-POS
  * RuntimeDatabase.java
  * Stores back end information to be retrieved by the Purchase (Model in MVC
- * class) at runtime. Because the amount of data in the back end is small and
- * largely read-only, runtime structures allow greater efficiency than directly
- * querying the back end.
+ * class) at runtime and enables writes to the back end data base. Because 
+ * the amount of data in the back end is small and largely read-only, runtime 
+ * structures allow greater efficiency than directly querying the back end.
  * 
  * @author Sophi Newman
  * @version 0.1 03/17/2013
@@ -30,14 +28,19 @@ public class RuntimeDatabase implements SHPRCConstants{
 	/* The JDBC Connection that backs the class */
 	private Connection connection;
 
+	/* All possible community affiliations */
 	private ArrayList<Affiliation> affiliations;
-	
+
+	/* Maps from affiliation ID to affiliation */
 	private HashMap<Integer, Affiliation> affiliationMap;
 
+	/* All merchandise categories */
 	private ArrayList<Category> categoryList;
 
+	/* The product specified as the pregnancy test */
 	private Product pregnancyTest;
 
+	/* All products available for purchase */
 	private ArrayList<Product> productList;
 
 
@@ -140,7 +143,7 @@ public class RuntimeDatabase implements SHPRCConstants{
 		return null;
 	}
 
-	
+
 	/**
 	 * Returns the category associated with the given categoryID.
 	 * @param categoryID
@@ -157,14 +160,14 @@ public class RuntimeDatabase implements SHPRCConstants{
 	}
 
 
-//	/**
-//	 * Returns the product associated with the specified productID.
-//	 * @param productID the unique integer product ID to be looked up
-//	 * @return the product associated with the specified productID
-//	 */
-//	public Product getProduct (int productID) {
-//		return productMap.get(productID);
-//	}
+	//	/**
+	//	 * Returns the product associated with the specified productID.
+	//	 * @param productID the unique integer product ID to be looked up
+	//	 * @return the product associated with the specified productID
+	//	 */
+	//	public Product getProduct (int productID) {
+	//		return productMap.get(productID);
+	//	}
 
 
 	/**
@@ -180,7 +183,7 @@ public class RuntimeDatabase implements SHPRCConstants{
 			// Return all rows in the Product relation
 			ResultSet rs = stmt.executeQuery(("SELECT productID, productName, price, cost, isPregnancyTest, " +
 					"Product.categoryID, categoryName FROM Product, Category " +
-					"WHERE Product.categoryID = Category.categoryID ORDER BY productID"));
+			"WHERE Product.categoryID = Category.categoryID ORDER BY productID"));
 			// Read in the information about each row and store in Product object
 			// Store the flagged pregnancy test product in an instance variable
 			while (rs.next()) {
@@ -430,7 +433,7 @@ public class RuntimeDatabase implements SHPRCConstants{
 		return true;
 	}
 
-	
+
 	/**
 	 * Tests whether an affiliation name is already in use.
 	 * @param name name to be tested for uniqueness
@@ -455,6 +458,7 @@ public class RuntimeDatabase implements SHPRCConstants{
 		}
 		return true;
 	}
+	
 
 	/**
 	 * Adds a new affiliation to the database.
@@ -557,7 +561,7 @@ public class RuntimeDatabase implements SHPRCConstants{
 		return true;
 	}
 
-	
+
 	/**
 	 * Tests whether a category name is already in use.
 	 * @param name name to be tested for uniqueness
@@ -684,9 +688,9 @@ public class RuntimeDatabase implements SHPRCConstants{
 	 * @return successfully written
 	 */
 	public boolean writePurchase (PurchaseModel purchase) {
-	
+
 		int purchaseID = 0;
-	
+
 		try {
 			connection.setAutoCommit(false);
 			PreparedStatement pstmt = null;
@@ -700,30 +704,32 @@ public class RuntimeDatabase implements SHPRCConstants{
 			} else {
 				purchaseID = MINIMUM_PURCHASE_ID;
 			}
-	
+			
+			purchase.setPurchaseID(purchaseID);
+
 			int[] totals = purchase.getTotals();
 			Client client = purchase.getCurrentClient();
-	
+
 			int creditUsed = -1 * totals[CREDIT] + -1 * totals[PT_SUBSIDY];
 			int total = totals[TOTAL];
 			Date date= new Date();
 			Timestamp timestamp = new Timestamp(date.getTime());
 			int affiliationID = client.getAffiliation();
-	
+
 			pstmt =  connection.prepareStatement("INSERT INTO Purchase VALUES (?, ?, ?, ?, ?)");
 			pstmt.setInt(1, purchaseID);
 			pstmt.setString(2, timestamp.toString());
 			pstmt.setInt(3, total);
 			pstmt.setInt(4, creditUsed);
 			pstmt.setInt(5, affiliationID);
-	
+
 			pstmt.executeUpdate();
-	
+
 			if (!writePurchasedProducts(purchase, purchaseID)) { 
-				// Calls for all products in purchase to be written to database. Returns false on failure.
+			// Calls for all products in purchase to be written to database. Returns false on failure.
 				return false;
 			}
-	
+
 			// Either writes new client to database or creates new client entry.
 			if (purchase.isNewClient()) {
 				if (!addClient(client, totals)) {
@@ -732,19 +738,19 @@ public class RuntimeDatabase implements SHPRCConstants{
 			} else if (!updateClient(client, totals)) {
 				return false;
 			}
-	
+
 			connection.commit();
 			connection.setAutoCommit(true);
-	
+
 		} catch (SQLException e) {
 			System.err.println("In writePurchase" + e.getMessage());
 			return false;
-	
+
 		} catch (NullPointerException e) {
 			System.err.println(e.getMessage());
 			return false;
 		}
-	
+
 		return true;
 	}
 
@@ -781,6 +787,59 @@ public class RuntimeDatabase implements SHPRCConstants{
 		return true;
 	}
 
+	
+	/**
+	 * Removes a purchase and all client updates based on it from the database
+	 * @param purchase the purchase to be voided
+	 * @return successfully voided
+	 */
+	public boolean voidPurchase (PurchaseModel purchase) {
+
+		int purchaseID = purchase.getPurchaseID();
+
+		try {
+			connection.setAutoCommit(false);
+			PreparedStatement pstmt = null;
+			pstmt = connection.prepareStatement("SELECT Max(purchaseID) AS maxID from Purchase");
+
+
+			int[] totals = purchase.getTotals();
+			Client client = purchase.getCurrentClient();
+
+			pstmt =  connection.prepareStatement("DELETE FROM Purchase WHERE purchaseID = ?");
+			pstmt.setInt(1, purchaseID);
+			pstmt.executeUpdate();
+
+			pstmt = connection.prepareStatement("DELETE FROM PurchasedProduct WHERE purchaseID = ?");
+			pstmt.setInt(1, purchaseID);
+			pstmt.executeUpdate();
+
+			int SUID = client.getSUID();
+			int credit = totals[CREDIT];
+			boolean testUsed = !client.isPregnancyTestRedeemed(); //sets the test to be unused except if it was used prior to this purchase
+
+			pstmt = connection.prepareStatement("UPDATE Client SET creditAvailable = ?, pregnancyTestUsed = ? WHERE SUID = ?");
+			pstmt.setInt(1, credit);
+			pstmt.setBoolean(2, testUsed);
+			pstmt.setInt(3, SUID);
+
+			pstmt.executeUpdate();	
+
+			connection.commit();
+			connection.setAutoCommit(true);
+
+		} catch (SQLException e) {
+			System.err.println("In writePurchase" + e.getMessage());
+			return false;
+
+		} catch (NullPointerException e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
+
+		return true;
+	}
+
 
 	/**
 	 * Adds a client to the database.
@@ -811,7 +870,7 @@ public class RuntimeDatabase implements SHPRCConstants{
 		return true;
 	}
 
-	
+
 	/**
 	 * Update the given client in the database.
 	 * @param client the client to be updated
@@ -822,7 +881,7 @@ public class RuntimeDatabase implements SHPRCConstants{
 		try {
 			int SUID = client.getSUID();
 			int credit = client.getCredit() - totals[CREDIT];
-			boolean testUsed = totals[PT_SUBSIDY] != 0; //stays at zero if unused
+			boolean testUsed = totals[PT_SUBSIDY] != 0 || client.isPregnancyTestRedeemed(); // true if unused in this purchase or if used previously
 
 			PreparedStatement pstmt = connection.prepareStatement("UPDATE Client SET creditAvailable = ?, pregnancyTestUsed = ? WHERE SUID = ?");
 			pstmt.setInt(1, credit);

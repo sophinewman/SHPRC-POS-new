@@ -3,17 +3,42 @@ import java.sql.SQLException;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
-
+/**
+ * SHPRC-POS
+ * DialogController.java
+ * Connects an administrator dialog view to a runtime database to allow for back end updates.
+ * 
+ * @author Sophi Newman
+ * @version 0.1 03/17/2013
+ */
 
 public class DialogController {
 
+	/* The runtime database access point */
 	private RuntimeDatabase rDB;
+	
+	/* The view of the root dialog displaying a list of objects to be updated */
 	private AdminDialog dialogView = null;
+	
+	/* The parent frame */
 	private JFrame parentFrame;
+	
+	/* The selected affiliation, category, or product */
 	private Object selectedObject;
+	
+	/* The object editor dialog box view */
 	private JDialog subDialog;
+	
+	/* Which administrative task to be carried out (affiliation, category, or product) */
 	private String adminTask;
+	
 
+	/**
+	 * Class constructor.
+	 * @param rDB the runtime database back end
+	 * @param parentFrame the parent frame
+	 * @param adminTask which task to be carried out
+	 */
 	public DialogController (RuntimeDatabase rDB, JFrame parentFrame, String adminTask) {
 		this.rDB = rDB;
 		this.parentFrame = parentFrame;
@@ -21,31 +46,43 @@ public class DialogController {
 		dialogView = new AdminDialog(this, parentFrame, adminTask, rDB.getAffiliations(), rDB.getProductList(), rDB.getCategoryList());
 	}
 
+	/**
+	 * Saves whatever object the user has selected form the list
+	 * @param obj the object to be saved
+	 */
 	public void itemSelected(Object obj) {
 		selectedObject = obj;
 		dialogView.enableUpdateAndDelete();
 	}
 
+	/**
+	 * Brings up a dialog to allow the user to add a product.
+	 */
 	public void addProduct() {
 		subDialog = new ProductDialog(this, dialogView, "Update Product", rDB.getCategoryList().toArray(), false);
 		subDialog.setVisible(true);
 	}
 
 
+	/**
+	 * Brings up a dialog to allow the user to update a product.
+	 */
 	public void updateProduct() {
-
 		subDialog = new ProductDialog(this, dialogView, "Update Product", rDB.getCategoryList().toArray(), true);
 
 		Product product = (Product) selectedObject;
 		int categoryID = product.getCategoryID();
 		Category category = rDB.getCategory(categoryID);
 
-
 		((ProductDialog) subDialog).populateFields(product.getName(), product.getPrice(), product.getCost(), category);
 		subDialog.setVisible(true);
 
 	}
 
+	
+	/**
+	 * Brings up a dialog to allow the user to delete a product. 
+	 */
 	public void deleteProduct() {
 		int decision = dialogView.confirmDecision("Are you sure you want to delete this product?");
 		if (decision == JOptionPane.YES_OPTION) {
@@ -59,11 +96,18 @@ public class DialogController {
 	}
 
 
+	/**
+	 * Brings up a dialog to allow the user to add an affiliation.
+	 */
 	public void addAffiliation() {
 		subDialog = new AffiliationDialog(this, dialogView, "Add Affiliation", false);
 		subDialog.setVisible(true);
 	}
 
+	
+	/**
+	 * Brings up a dialog to allow the user to update of an affiliation. 
+	 */
 	public void updateAffiliation() {
 		subDialog = new AffiliationDialog(this, dialogView, "Update Affiliation", true);
 
@@ -74,6 +118,10 @@ public class DialogController {
 
 	}
 
+	
+	/**
+	 * Brings up a dialog to allow the user to delete an affiliation. 
+	 */
 	public void deleteAffiliation() {
 		int decision = dialogView.confirmDecision("Are you sure you want to delete this affiliation?");
 		if (decision == JOptionPane.YES_OPTION) {
@@ -87,12 +135,20 @@ public class DialogController {
 
 	}
 
+	
+	/**
+	 * Brings up a dialog to allow the user to add a category. 
+	 */
 	public void addCategory() {
 		subDialog = new CategoryDialog(this, dialogView, "Add Category", false);
 		subDialog.setVisible(true);
 
 	}
 
+	
+	/**
+	 * Brings up a dialog to allow the user to update a category. 
+	 */
 	public void updateCategory() {
 		subDialog = new CategoryDialog(this, dialogView, "Update Category", true);
 
@@ -103,6 +159,10 @@ public class DialogController {
 
 	}
 
+	
+	/**
+	 * Brings up a dialog to allow the user to delete a category.
+	 */
 	public void deleteCategory() {
 		int decision = dialogView.confirmDecision("Are you sure you want to delete this category?");
 		if (decision == JOptionPane.YES_OPTION) {
@@ -115,6 +175,13 @@ public class DialogController {
 		}
 	}
 
+	
+	/**
+	 * Validates entered dollars and cents strings and returns the concatenation of the two.
+	 * @param dollars the dollars string
+	 * @param cents the cents string
+	 * @return a valid concatenated dollars + cents string
+	 */
 	private String getMoneyString(String dollars, String cents) {
 		if (cents.length() > 2) {
 			return null;
@@ -125,7 +192,12 @@ public class DialogController {
 		}
 		return combination;
 	}
+	
 
+	/**
+	 * Attempts to write a new category to the database.
+	 * @param name the name of the new category
+	 */
 	public void createNewCategory(String name) {
 		if (name.equals("")) {
 			((CategoryDialog)subDialog).inputError("Please enter a category name.");
@@ -143,7 +215,12 @@ public class DialogController {
 		((CategoryDialog) subDialog).close();
 
 	}
+	
 
+	/**
+	 * Attempts to update an existing category in the database.
+	 * @param name the name of the category
+	 */
 	public void updateCategory(String name) {
 		if (name.equals("")) {
 			((CategoryDialog)subDialog).inputError("Please enter a category name.");
@@ -158,6 +235,16 @@ public class DialogController {
 		((CategoryDialog) subDialog).close();
 	}
 
+	
+	/**
+	 * Attempts to add a new product to the database
+	 * @param name the name of the product to be added
+	 * @param priceDollars the string representing the dollars in the price
+	 * @param priceCents the string representing the cents in the price
+	 * @param costDollars the string representing the dollars in the cost
+	 * @param costCents the string representing the cents in the cost
+	 * @param category the product category
+	 */
 	public void createNewProduct(String name, String priceDollars, String priceCents, String costDollars, String costCents, Category category) {
 		String priceString = getMoneyString(priceDollars, priceCents);
 		String costString = getMoneyString(costDollars, costCents);
@@ -181,6 +268,16 @@ public class DialogController {
 		((ProductDialog) subDialog).close();
 	}
 
+	
+	/**
+	 * Attempts to update a product in the database.
+	 * @param name the name of the product to be updated
+	 * @param priceDollars the string representing the dollars in the price
+	 * @param priceCents the string representing the cents in the price
+	 * @param costDollars the string representing the dollars in the cost
+	 * @param costCents the string representing the cents in the cost
+	 * @param category the product category
+	 */
 	public void updateProduct(String name, String priceDollars, String priceCents, 
 			String costDollars, String costCents, Category category) {
 		String priceString = getMoneyString(priceDollars, priceCents);
@@ -202,7 +299,15 @@ public class DialogController {
 		reset();
 		((ProductDialog) subDialog).close();
 	}
+	
 
+	/**
+	 * Attempts to add a new affiliation to the database.
+	 * @param name the name of the affiliation to be added
+	 * @param dollars the string representing the dollars of credit to be allotted
+	 * @param cents the string representing the cents of credit to be allotted
+	 * @param subsidyOn whether this affiliation receives a free pregnancy test
+	 */
 	public void createNewAffiliation(String name, String dollars, String cents, boolean subsidyOn) {
 		String creditString = getMoneyString(dollars, cents);
 		if (creditString == null) {
@@ -225,6 +330,14 @@ public class DialogController {
 		((AffiliationDialog) subDialog).close();
 	}
 
+	
+	/**
+	 * Attempts to update an affiliation in the database.
+	 * @param name the name of the affiliation to be updated
+	 * @param dollars the string representing the dollars of credit to be allotted
+	 * @param cents the string representing the cents of credit to be allotted
+	 * @param subsidyOn whether this affiliation receives a free pregnancy test
+	 */
 	public void updateAffiliation(String name, String dollars, String cents, boolean subsidyOn) {
 		String creditString = getMoneyString(dollars, cents);
 		if (creditString == null) {
@@ -244,10 +357,18 @@ public class DialogController {
 		((AffiliationDialog) subDialog).close();
 	}
 
+	
+	/**
+	 * Closes the dialog. 
+	 */
 	public void exit() {
 		dialogView.close();
 	}
 
+	
+	/**
+	 * Resets the object lists after update. 
+	 */
 	private void reset() {
 		try {
 			rDB.closeDatabase();

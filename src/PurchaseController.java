@@ -1,7 +1,6 @@
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 
 import javax.swing.JOptionPane;
 
@@ -180,15 +179,15 @@ public class PurchaseController implements SHPRCConstants {
 	 * Switches displayed pane to the administrator view.
 	 */
 	public void switchToAdmin() {
-		if (view.confirmDecision("<html>Administrator View is intended only for those trained and allowed to use it." +
-		"<br>Switching will clear your current purchase.<br>Would you like to continue?</html>")
+		if (view.confirmDecision("<html>Administrator View is intended only for<br>those trained and allowed to use it." +
+		"<br><br>Switching will clear your current purchase.<br><br>Would you like to continue?</html>")
 		== JOptionPane.YES_OPTION) {
 			view.switchView(ADMIN_PANE);
 		}
 	}
 
 	/**
-	 * Creates and displays the adminstrative dialog corresponding to the given task.
+	 * Creates and displays the administrative dialog corresponding to the given task.
 	 * @param task the administrative task to be carried out
 	 */
 	public void adminDialog(String task) {
@@ -203,6 +202,26 @@ public class PurchaseController implements SHPRCConstants {
 			view.displayTotalDialog(CURRENCY_FORMAT.format(model.tallyPurchaseTotal()/100.0));
 		} else {
 			view.displayError("You must specify a client and products to submit a purchase.");
+		}
+	}
+
+	
+	/**
+	 * Allows the user to select a purchase to void and then voids it
+	 */
+	public void voidPurchase() {
+		if (lastThreePurchases[0] == null) {
+			view.displayError("No purchases to void.");
+		} else {
+			PurchaseModel purchaseToVoid = view.displayVoidChoices(lastThreePurchases);
+			if (purchaseToVoid != null) {
+				if (!rDB.voidPurchase(purchaseToVoid)) {
+					view.displayError("Purchase could not be voided.");
+				} else {
+					view.displayMessage("Purchase successfully voided.");
+				}
+			}
+			
 		}
 	}
 

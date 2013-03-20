@@ -30,6 +30,9 @@ public class PurchaseModel implements SHPRCConstants {
 
 	/* Whether the current client has already visited this quarter */
 	private boolean newClient = true;
+	
+	/* The unique integer ID associated with this purchase; determined at database write */
+	private int purchaseID;
 
 
 	/**
@@ -41,6 +44,7 @@ public class PurchaseModel implements SHPRCConstants {
 		products = new HashMap<Product, Integer>();
 
 	}
+	
 	
 	/**
 	 * Adds a product in the specified quantity to the purchase and updates the total.
@@ -60,6 +64,7 @@ public class PurchaseModel implements SHPRCConstants {
 		}
 	}
 
+	
 	/**
 	 * Removes an product from the purchase's products, calculating and subtracting its
 	 * cost contribution from the subtotal.
@@ -70,6 +75,7 @@ public class PurchaseModel implements SHPRCConstants {
 		products.remove(product);
 	}
 
+	
 	/**
 	 * Returns the HashMap of products and their quantities in the purchase.
 	 * @return the HashMap of products and their quantities in the purchase
@@ -78,6 +84,29 @@ public class PurchaseModel implements SHPRCConstants {
 		return products;
 	}
 
+	
+	/**
+	 * Returns the purchase ID associated with this purchase
+	 * @return the purchase ID associated with this purchase
+	 */
+	public int getPurchaseID() {
+		return purchaseID;
+	}
+
+	
+	/**
+	 * Sets the purchase ID associated with this purchase
+	 * @param purchaseID the purchase ID to set
+	 */ 
+	public void setPurchaseID(int purchaseID) {
+		this.purchaseID = purchaseID;
+	}
+
+	
+	/**
+	 * Returns the client associated with the purchase
+	 * @return the client associated with the purchase
+	 */
 	public Client getCurrentClient() {
 		return currentClient;
 	}
@@ -91,7 +120,6 @@ public class PurchaseModel implements SHPRCConstants {
 	 * found, a Client object is created. If not, a new Client object is made.
 	 * @param currentSUID the SUID to set
 	 * @param affiliationID the class or community affiliation the client belongs to
-	 * TODO allow for those with certain combinations to opt out of SUID
 	 */
 	public void setCurrentClient(int suid, int affiliationID) {
 		currentClient = rDB.lookupClient(suid);
@@ -142,6 +170,15 @@ public class PurchaseModel implements SHPRCConstants {
 	public int[] getTotals() {
 		tallyPurchaseTotal();
 		return totals;
+	}
+	
+	/**
+	 * Returns the string representation of the purchase. Used in selection for voiding.
+	 * @return the string representation of the purchase
+	 */
+	@Override
+	public String toString() {
+		return "SUID: " + currentClient.getSUID() + " Total: " + CURRENCY_FORMAT.format(totals[TOTAL]/100.0);
 	}
 
 

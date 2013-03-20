@@ -32,6 +32,9 @@ public class Client {
 	/* Whether this client has already received one free pregnancy test this quarter. */
 	private boolean pregnancyTestRedeemed;
 
+
+
+
 	/* Whether the client qualifies for a free pregnancy test. */
 	private boolean qualifiesForPregnancyTest;
 
@@ -104,6 +107,13 @@ public class Client {
 		return affiliationID;
 	}
 
+	/**
+	 * Returns whether the client has already redeemed a free pregnancy test.
+	 * @return whether the client has already redeemed a free pregnancy test
+	 */
+	public boolean isPregnancyTestRedeemed() {
+		return pregnancyTestRedeemed;
+	}
 
 	/**
 	 * Returns whether or not the client can receive a free pregnancy test based on

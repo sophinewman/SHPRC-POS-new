@@ -5,19 +5,55 @@ import java.awt.event.ActionListener;
 
 import javax.swing.*;
 
+/**
+ * SHPRC-POS
+ * ProductDialog.java
+ * Draws the dialog view for updating, adding, and deleting products in administrator view.
+ * 
+ * @author Sophi Newman
+ * @version 0.1 03/17/2013
+ */
 
 public class ProductDialog extends JDialog implements ActionListener {
+	
+	/* The MVC controller that connects the view to the back end */
+	private DialogController controller;
+	
+	/* Whether the user is updating a product or adding a new one */
+	private boolean updateMode = false;
+	
+	/* The text field where the product's name is specified */
 	private JTextField nameField;
+	
+	/* The text field where the number of dollars in a price is specified */
 	private JTextField priceDollars;
+	
+	/* The text field where the number of cents in a price is specified */
 	private JTextField priceCents;
+	
+	/* The text field where the number of dollars in a cost is specified */
 	private JTextField costDollars;
+	
+	/* The text field where the number of cents in a cost is specified */
 	private JTextField costCents;
+	
+	/* The dropdown menu displaying different product categories*/
+	private JComboBox categoriesBox;
+	
+	
+	/* Dialog control buttons */
 	private JButton cancelButton;
 	private JButton saveButton;
-	private JComboBox categoriesBox;
-	private DialogController controller;
-	private boolean updateMode = false;
 
+
+	/**
+	 * Class constructor.
+	 * @param controller the MVC framework controller to be passed in
+	 * @param parent the parent container
+	 * @param title the title of the dialog
+	 * @param categories the product categories
+	 * @param updateMode whether update mode is on
+	 */
 	public ProductDialog (DialogController controller, JDialog parent, String title, Object[] categories, Boolean updateMode) {
 		super(parent, title);
 
@@ -36,6 +72,13 @@ public class ProductDialog extends JDialog implements ActionListener {
 		
 	}
 	
+	/**
+	 * Sets the fields to the values specified.
+	 * @param name the product name to be set
+	 * @param price the price in cents of the product
+	 * @param cost the cost in cents of the product
+	 * @param category the product category to which it belongs
+	 */
 	public void populateFields(String name, int price, int cost, Category category) {
 			nameField.setText(name);
 			categoriesBox.setSelectedItem(category);
@@ -46,6 +89,13 @@ public class ProductDialog extends JDialog implements ActionListener {
 
 	}
 	
+	/**
+	 * Processes the string representation of money in cents into a dollars string and a cents
+	 * string and sets these values in the view.
+	 * @param dollarsField the text field where dollars are entered
+	 * @param centsField the text field where cents are entered
+	 * @param moneyString the string representation to be set
+	 */
 	private void setMoneyFields (JTextField dollarsField, JTextField centsField, String moneyString) {
 		String dollarsString;
 		String centsString;
@@ -70,6 +120,10 @@ public class ProductDialog extends JDialog implements ActionListener {
 		centsField.setText(centsString);
 	}
 
+	
+	/**
+	 * Draws the JPanel that holds the name field
+	 */
 	private void drawNamePane() {
 		JPanel productNamePane = new JPanel();
 		this.add(productNamePane, BorderLayout.NORTH);
@@ -83,6 +137,10 @@ public class ProductDialog extends JDialog implements ActionListener {
 		productNamePane.add(nameField);
 	}
 
+	
+	/**
+	 * Draws the JPanel that holds the control buttons
+	 */
 	private void drawControlButtonPane() {
 		JPanel controlButtonPane = new JPanel();
 		this.add(controlButtonPane, BorderLayout.SOUTH);
@@ -100,6 +158,11 @@ public class ProductDialog extends JDialog implements ActionListener {
 		controlButtonPane.add(saveButton);
 	}
 
+	
+	/**
+	 * Draws the pane that displays price/cost and category entry fields/dropdowns.
+	 * @param categories
+	 */
 	private void drawCategoryAndPricePane(Object[] categories) {
 		JPanel categoryAndPricePane = new JPanel();
 		this.add(categoryAndPricePane, BorderLayout.CENTER);
@@ -142,8 +205,12 @@ public class ProductDialog extends JDialog implements ActionListener {
 		categoryAndPricePane.add(new JLabel(" "));
 	}
 
+	
+	/**
+	 * Handles all ActionEvents by triggering the appropriate response by the controller.
+	 */
+	@Override
 	public void actionPerformed(ActionEvent event) {
-
 		Object src = event.getSource();
 		if (src == saveButton) {
 			if (!updateMode) {
@@ -159,10 +226,18 @@ public class ProductDialog extends JDialog implements ActionListener {
 
 	}
 
+	
+	/**
+	 * Closes the dialog box.
+	 */
 	public void close() {
 		this.dispose();
 	}
 
+	/**
+	 * Displays an error message to the user.
+	 * @param errorMessage the message to be displayed
+	 */
 	public void inputError (String errorMessage) {
 		JOptionPane.showMessageDialog(this, errorMessage, "Input Error", JOptionPane.ERROR_MESSAGE);
 	}
