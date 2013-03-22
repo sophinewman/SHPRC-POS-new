@@ -2,13 +2,11 @@ import java.awt.Font;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 /**
- * SHPRC-POS
- * HelveticaJLabel.java
  * Creates a JLabel with the font pre-set to bold Helvetica of the specified size.
  * Used for convenience; has no additional functionality.
  * 
  * @author Sophi Newman
- * @version 1.0 03/17/2013
+ * @version 1.0 03/20/2013
  */
 
 

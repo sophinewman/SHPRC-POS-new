@@ -1,10 +1,8 @@
 /**
- * SHPRC-POS
- * Affiliation.java
  * Stores credit and subsidy information about a student or community affiliation.
  * 
  * @author Sophi Newman
- * @version 1.0 03/17/2013
+ * @version 1.0 03/20/2013
  */
 
 public class Affiliation {

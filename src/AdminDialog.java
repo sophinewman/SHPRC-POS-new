@@ -16,12 +16,10 @@ import java.util.ArrayList;
 import java.util.ArrayList;
 
 /**
- * SHPRC-POS
- * AdminDialog.java
  * Displays administrative tools for changing the back end.
  * 
  * @author Sophi Newman
- * @version 1.0 03/17/2013
+ * @version 1.0 03/20/2013
  */
 
 public class AdminDialog extends JDialog implements SHPRCConstants, ActionListener, ListSelectionListener {
@@ -262,7 +260,7 @@ public class AdminDialog extends JDialog implements SHPRCConstants, ActionListen
 	
 	/**
 	 * Displays a JOptionPane confirming a user's action.
-	 * @param messsage the message to be displayed
+	 * @param message the message to be displayed
 	 * @return the JOptionPane constant corresponding to user's decision
 	 */
 	public int confirmDecision(String message) {

@@ -2,13 +2,11 @@ import java.util.HashMap;
 
 
 /**
- * SHPRC-POS
- * Purchase.java
  * Serves the model in the MVC framework and stores information about a purchase,
  * calculating totals based on the specified products and the current client.  
  * 
  * @author Sophi Newman
- * @version 1.0 03/17/2013
+ * @version 1.0 03/20/2013
  */
 
 
@@ -118,7 +116,7 @@ public class PurchaseModel implements SHPRCConstants {
 	 * an affiliation identification number (e.g., "frosh," "grad," "other") and uses
 	 * these parameters to look up the client in the client database. If the client is
 	 * found, a Client object is created. If not, a new Client object is made.
-	 * @param currentSUID the SUID to set
+	 * @param suid the SUID to set
 	 * @param affiliationID the class or community affiliation the client belongs to
 	 */
 	public void setCurrentClient(int suid, int affiliationID) {

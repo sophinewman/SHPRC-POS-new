@@ -3,12 +3,10 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
 /**
- * SHPRC-POS
- * PointOfSale.java
  * The class that runs the application.
  * 
  * @author Sophi Newman
- * @version 1.0 03/17/2013
+ * @version 1.0 03/20/2013
  */
 
 public class PointOfSale {

@@ -14,12 +14,10 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 /**
- * SHPRC-POS
- * PurchaseView.java
  * Serves as the view in the MVC framework and displays products to be added to a purchase and the products in a purchase.
  * 
  * @author Sophi Newman
- * @version 1.0 03/17/2013
+ * @version 1.0 03/20/2013
  */
 
 public class PurchaseView implements ActionListener, SHPRCConstants {

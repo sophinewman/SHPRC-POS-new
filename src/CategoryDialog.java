@@ -6,21 +6,29 @@ import java.awt.event.ActionListener;
 import javax.swing.*;
 
 
+
+/**
+ * Draws the dialog view for updating, adding, and deleting categories in administrator view.
+ *
+ * @author Sophi Newman
+ * @version 1.0 03/20/2013
+ *
+ */
 public class CategoryDialog extends JDialog implements ActionListener {
-	
+
 	/* The MVC controller that connects the view to the back end */
 	private DialogController controller;
-	
+
 	/* Whether the user is updating an affiliation or adding a new one */
 	private boolean updateMode = false;
-	
+
 	/* The text field where the category's name is specified */
 	private JTextField nameField;
-	
+
 	/* Dialog control buttons */
 	private JButton cancelButton;
 	private JButton saveButton;
-	
+
 
 	/**
 	 * Class constructor
@@ -33,7 +41,7 @@ public class CategoryDialog extends JDialog implements ActionListener {
 		super(parent, title);
 
 		this.controller = controller;
-		
+
 		this.updateMode = updateMode;
 
 		getContentPane().setLayout(new BorderLayout(5,5));
@@ -43,18 +51,18 @@ public class CategoryDialog extends JDialog implements ActionListener {
 
 		this.pack();
 		this.setLocationRelativeTo(parent);
-		
+
 	}
-	
+
 	/**
 	 * Sets the fields to the values specified.
 	 * @param name the category name to be set
 	 */
 	public void populateFields(String name) {
-			nameField.setText(name);
+		nameField.setText(name);
 	}
-	
-	
+
+
 	/**
 	 * Draws the JPanel that holds the name field
 	 */
@@ -70,7 +78,7 @@ public class CategoryDialog extends JDialog implements ActionListener {
 		nameField = new JTextField(12);
 		productNamePane.add(nameField);
 	}
-	
+
 
 	/**
 	 * Draws the JPanel that holds the control buttons
@@ -91,7 +99,7 @@ public class CategoryDialog extends JDialog implements ActionListener {
 		controlButtonPane.add(saveButton);
 	}
 
-	
+
 	/**
 	 * Handles all ActionEvents by triggering the appropriate response by the controller.
 	 */
@@ -109,7 +117,7 @@ public class CategoryDialog extends JDialog implements ActionListener {
 		}
 	}
 
-	
+
 	/**
 	 * Closes the dialog box.
 	 */	
@@ -117,7 +125,7 @@ public class CategoryDialog extends JDialog implements ActionListener {
 		this.dispose();
 	}
 
-	
+
 	/**
 	 * Displays an error message to the user.
 	 * @param errorMessage the message to be displayed
@@ -125,7 +133,7 @@ public class CategoryDialog extends JDialog implements ActionListener {
 	public void inputError (String errorMessage) {
 		JOptionPane.showMessageDialog(this, errorMessage, "Input Error", JOptionPane.ERROR_MESSAGE);
 	}
-	
+
 
 }
 

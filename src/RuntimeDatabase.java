@@ -66,6 +66,11 @@ public class RuntimeDatabase implements SHPRCConstants{
 		try {		
 			connection = 
 				DriverManager.getConnection("jdbc:sqlite:/Users/sophi/Documents/Workspace/SHPRC-POS/SHPRC-POS.db");
+			//first time they run the program, dialog box
+			//is there an .ini file in the directory
+			//if not, have the user decide where the db should reside
+			//otherwise, just open what's in the .ini file
+			// .ini file
 			if (connection == null) {
 				return false;
 			}
@@ -207,7 +212,7 @@ public class RuntimeDatabase implements SHPRCConstants{
 			System.out.println(e.getMessage());
 			return false;
 		}
-		// Ensures that the pregnancyTest and productMap objects have been initialized
+		// Ensures that the pregnancy test object has been initialized
 		return (pregnancyTest != null);
 	}
 
@@ -386,11 +391,12 @@ public class RuntimeDatabase implements SHPRCConstants{
 			return false;
 		}
 		try {
-			PreparedStatement pstmt = connection.prepareStatement("UPDATE Product SET productName = ?, price = ?, cost = ? WHERE productID = ?") ;
+			PreparedStatement pstmt = connection.prepareStatement("UPDATE Product SET productName = ?, price = ?, cost = ?, categoryID = ? WHERE productID = ?") ;
 			pstmt.setString(1, newName);
 			pstmt.setInt(2, price);
 			pstmt.setInt(3, cost);
-			pstmt.setInt(4, productID);
+			pstmt.setInt(4, categoryID);
+			pstmt.setInt(5, productID);
 			pstmt.executeUpdate();
 		}
 		catch (SQLException e) {

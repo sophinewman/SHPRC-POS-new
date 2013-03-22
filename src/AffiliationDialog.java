@@ -6,12 +6,10 @@ import java.awt.event.ActionListener;
 import javax.swing.*;
 
 /**
- * SHPRC-POS
- * AffiliationDialog.java
  * Draws the dialog view for updating, adding, and deleting affiliations in administrator view.
  * 
  * @author Sophi Newman
- * @version 0.1 03/17/2013
+ * @version 1.0 03/20/2013
  */
 
 public class AffiliationDialog extends JDialog implements ActionListener {

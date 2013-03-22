@@ -5,12 +5,10 @@ import java.util.HashMap;
 import javax.swing.JOptionPane;
 
 /**
- * SHPRC-POS
- * PurchaseController.java
  * Serves as the controller in the MVC framework of a purchase and manages the main program execution.
  * 
  * @author Sophi Newman
- * @version 1.0 03/17/2013
+ * @version 1.0 03/20/2013
  */
 
 public class PurchaseController implements SHPRCConstants {
@@ -47,7 +45,6 @@ public class PurchaseController implements SHPRCConstants {
 	 * Sets the current client based on the specified information.
 	 * @param suidStr the string representation of the client's SUID
 	 * @param affiliationID the numeric representation of the client's affiliation
-	 * @return whether client set successfully
 	 */
 	public void setClient(String suidStr, int affiliationID) {
 		if (!suidStr.matches("[0-9]+") || suidStr.length() < N_SUID_DIGITS) {

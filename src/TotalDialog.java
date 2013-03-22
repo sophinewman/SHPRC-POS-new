@@ -15,12 +15,10 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
 /**
- * SHPRC-POS
- * TotalDialog.java
  * Displays a total and change due for a given purchase.
  * 
  * @author Sophi Newman
- * @version 1.0 03/17/2013
+ * @version 1.0 03/20/2013
  */
 
 

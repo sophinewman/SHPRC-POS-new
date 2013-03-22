@@ -3,12 +3,10 @@ import java.awt.Font;
 
 import javax.swing.JButton;
 /**
- * SHPRC-POS
- * ProductJButton.java
  * Creates a JButton formatted for displaying a product; also stores the product in question.
  * 
  * @author Sophi Newman
- * @version 1.0 03/17/2013
+ * @version 1.0 03/20/2013
  */
 
 public class ProductJButton extends JButton implements SHPRCConstants {

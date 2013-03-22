@@ -2,8 +2,6 @@ import java.awt.Font;
 import javax.swing.*;
 
 /**
- * SHPRC-POS
- * HelveticaJButton.java
  * Creates a JButton with the font pre-set to bold Helvetica of the specified size.
  * Used for convenience; has no additional functionality.
  * 

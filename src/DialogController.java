@@ -4,12 +4,10 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 /**
- * SHPRC-POS
- * DialogController.java
  * Connects an administrator dialog view to a runtime database to allow for back end updates.
  * 
  * @author Sophi Newman
- * @version 0.1 03/17/2013
+ * @version 1.0 03/20/2013
  */
 
 public class DialogController {

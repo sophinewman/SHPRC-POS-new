@@ -1,10 +1,8 @@
 /**
- * SHPRC-POS
- * Category.java
  * Stores information about a merchandise category, which is used to group similar items.
  * 
  * @author Sophi Newman
- * @version 1.0 03/17/2013
+ * @version 1.0 03/20/2013
  */
 
 public class Category {

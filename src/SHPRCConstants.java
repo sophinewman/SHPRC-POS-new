@@ -2,12 +2,10 @@ import java.awt.Color;
 import java.text.NumberFormat;
 import java.util.Locale;
 /**
- * SHPRC-POS
- * SHPRCConstants.java
  * Enumerates a series of constants used throughout the program.
  * 
  * @author Sophi Newman
- * @version 1.0 03/17/2013
+ * @version 1.0 03/20/2013
  */
 
 public interface SHPRCConstants {

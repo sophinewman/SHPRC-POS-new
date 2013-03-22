@@ -1,11 +1,9 @@
 
 /**
- * SHPRC-POS
- * Client.java
  * Stores information about a client.
  * 
  * @author Sophi Newman
- * @version 1.0 03/17/2013
+ * @version 1.0 03/20/2013
  */
 
 public class Client {

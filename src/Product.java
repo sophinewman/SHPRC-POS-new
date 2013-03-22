@@ -1,10 +1,8 @@
 /**
- * SHPRC-POS
- * Product.java
  * Stores information about a product.
  * 
  * @author Sophi Newman
- * @version 1.0 03/17/2013
+ * @version 1.0 03/20/2013
  */
 
 public class Product implements SHPRCConstants{
