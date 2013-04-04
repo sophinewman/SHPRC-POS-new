@@ -52,7 +52,6 @@ public class RuntimeDatabase implements SHPRCConstants{
 	 */
 	public RuntimeDatabase() throws ClassNotFoundException {
 		Class.forName("org.sqlite.JDBC");
-
 	}
 
 
@@ -65,7 +64,7 @@ public class RuntimeDatabase implements SHPRCConstants{
 	public boolean initRuntimeDatabase() {
 		try {		
 			connection = 
-				DriverManager.getConnection("jdbc:sqlite:/Users/sophi/Documents/Workspace/SHPRC-POS/SHPRC-POS.db");
+				DriverManager.getConnection("jdbc:sqlite:SHPRC-POS.db");
 			//first time they run the program, dialog box
 			//is there an .ini file in the directory
 			//if not, have the user decide where the db should reside

@@ -1,3 +1,8 @@
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+
+import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
@@ -10,19 +15,22 @@ import javax.swing.UnsupportedLookAndFeelException;
  */
 
 public class PointOfSale {
-	
+
 	public static void main(String[] args) {
-		RuntimeDatabase rDB = null;
 		
+
+		RuntimeDatabase rDB = null;
+
 		try {
 			rDB = new RuntimeDatabase();
+
 		} catch (ClassNotFoundException e) {
 			showErrorDialog("<html>Database driver (SQLite JDBC) could not be found.<p>Program will now exit.</html>", true);		}
-		
+
 		if (!rDB.initRuntimeDatabase()) {
 			showErrorDialog("<html>Database initialization failed.<p>Program will now exit.</html>", true);
 		}
-		
+
 		try {
 			// Set program to "Metal" or "Cross Platform" look and feel
 			UIManager.setLookAndFeel(
@@ -38,13 +46,13 @@ public class PointOfSale {
 					"<p>Program will use system default.</html>", false);
 		} catch (IllegalAccessException e) {
 			showErrorDialog("<html>The Java Swing look and feel class (\"Metal\") could not be accessed." +
-			"<p>Program will use system default.</html>", false);
+					"<p>Program will use system default.</html>", false);
 		}
 
 		PurchaseModel model = new PurchaseModel(rDB);
 		PurchaseController controller = new PurchaseController(model, rDB);
 	}
-	
+
 	/**
 	 * Displays an error dialog and, if necessary, exits program.
 	 * @param message message to be displayed
